@@ -1,0 +1,35 @@
+<!-- html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Utilisateurs</title>
+</head>
+<body>
+  <h1>Utilisateurs</h1>
+
+  <form action="/users/create" method="get" style="margin-bottom:20px;">
+    <button type="submit">Ajouter un utilisateur</button>
+  </form>
+
+  <ol>
+    {{#users}}
+      <li>
+        {{firstname}} {{lastname}} {{username}} ({{email}})
+        <form action="/users/{{id}}" method="get" style="display:inline;">
+          <button type="submit">Voir</button>
+        </form>
+        <form action="/users/{{id}}/delete" method="post" style="display:inline;">
+          <button type="submit">Supprimer</button>
+        </form>
+      </li>
+    {{/users}}
+  </ol>
+
+  {{^users}}
+    <div>
+      Aucun utilisateur à afficher
+    </div>
+  {{/users}}
+</body>
+</html>

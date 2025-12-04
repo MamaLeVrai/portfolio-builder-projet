@@ -1,0 +1,26 @@
+<!-- html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Détails utilisateur</title>
+</head>
+<body>
+  <h1>Détails de l’utilisateur</h1>
+
+  {{#user}}
+    <p><strong>ID:</strong> {{id}}</p>
+    <p><strong>Prénom:</strong> {{firstname}}</p>
+    <p><strong>Nom:</strong> {{lastname}}</p>
+    <p><strong>Email:</strong> {{email}}</p>
+  {{/user}}
+
+  {{^user}}
+    <p>Utilisateur introuvable.</p>
+  {{/user}}
+
+  <form action="/users" method="get" style="margin-top:16px;">
+    <button type="submit">Retour</button>
+  </form>
+</body>
+</html>
