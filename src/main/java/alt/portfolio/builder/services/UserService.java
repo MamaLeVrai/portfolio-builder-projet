@@ -12,19 +12,17 @@ import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.repositories.UserRepositories;
 
 @Service
-public class UserService {
+public class UserService  {
 	
 	@Autowired
 	private UserRepositories userRepositories;
 	
 	public List<User> getUsers(){
-		return userRepositories.findAll();
+		return userRepositories.findAll(); 
 	}
 	
 	public User createUser(userRequestDto userRequest) {
 		User user = userRequest.toUser(new User());
-		user.setFirstname(userRequest.getFirstname());
-		
 		return userRepositories.save(user);
 	}
     public User getUserById(UUID id) {
