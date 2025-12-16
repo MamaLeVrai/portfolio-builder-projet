@@ -1,0 +1,18 @@
+package alt.portfolio.builder.repositories;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import alt.portfolio.builder.entities.Rubric;
+
+@Repository
+public interface RubricRepositories extends JpaRepository<Rubric, UUID>{
+	
+	public List<Rubric> findByName();
+	
+	public Optional<Rubric> findByName(String name);
+}

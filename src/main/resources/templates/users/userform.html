@@ -1,16 +1,23 @@
+{{ > /partials/header}}
+
 <form method = "post" action = '/users/create'>
 {{#user}}
 
-	<input type = "text" placeholder = "Prénom" name = "firstname" value = "{{firstname}}">
-	<input type = "text" placeholder = "Nom" name = "lastname" value = "{{lastname}}">
-	<input type = "text" placeholder = "Login" name = "username" value = "{{username}}">
-	<input type = "email" placeholder = "Email" name = "email" value = "{{email}}">
-	<input type = "password" placeholder = "Mot de passe" name = "password" value = "{{password}}">
+	<input type = "text" placeholder = "Prénom" name = "firstname" value = "{{firstname}}" required>
+	<input type = "text" placeholder = "Nom" name = "lastname" value = "{{lastname}}" required>
+	<input type = "text" placeholder = "Login" name = "username" value = "{{username}}" required>
+	<input type = "email" placeholder = "Email" name = "email" value = "{{email}}" required>
+	{{#emailError}}
+	<div class="error" style="color:red;">Cet email est déjà utilisé, veuillez en choisir un autre.</div>
+	{{/emailError}}
+	<input type = "password" placeholder = "Mot de passe" name = "password" required minlength="6">
 	
 	<button type = "submit">Valider</button>	
-	<form action="/users" method="get" style="display:inline;">
-          <button type="submit">Annuler</button>
-    </form>
+
 
 {{/user}}
 </form>
+	<form action="/users" method="get" style="display:inline;">
+          <button type="submit">Annuler</button>
+    </form>
+{{ > /partials/footer}}

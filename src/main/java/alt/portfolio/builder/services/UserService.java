@@ -1,6 +1,5 @@
 package alt.portfolio.builder.services;
 
-
 import java.util.List;
 import java.util.UUID;
 
@@ -17,19 +16,32 @@ public class UserService  {
 	@Autowired
 	private UserRepositories userRepositories;
 	
+	@Autowired
+	private DbUserServices dbUserServices;
+	
 	public List<User> getUsers(){
-		return userRepositories.findAll(); 
+		return userRepositories.findByArchiverFalse(); 
 	}
 	
 	public User createUser(userRequestDto userRequest) {
+		// vérification : email déjà utilisé ?
+		userRepositories.findByEmail(userRequest.getEmail())
+			.ifPresent(u -> { throw new IllegalArgumentException("Email déjà utilisé"); });
+		
 		User user = userRequest.toUser(new User());
+		dbUserServices.encodePassword(user);
 		return userRepositories.save(user);
 	}
+
     public User getUserById(UUID id) {
         return userRepositories.findById(id)
             .orElseThrow(() -> new RuntimeException("Utilisateur introuvable: " + id));
     }
-    public void deleteUser(UUID id) {
-        userRepositories.deleteById(id);
+    
+    // au lieu de supprimer physiquement, on archive
+    public void archiveUser(UUID id) {
+    	User user = getUserById(id);
+    	user.setArchiver(true);
+    	userRepositories.save(user);
     }
 }

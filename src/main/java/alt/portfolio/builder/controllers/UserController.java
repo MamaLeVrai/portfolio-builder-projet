@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,9 +42,16 @@ public class UserController {
 	}
 	
 	@PostMapping("/create")
-	public RedirectView createUser(@ModelAttribute userRequestDto createdUser) {
-		User user = userService.createUser(createdUser);
-		return new RedirectView("/users");
+	public String createUser(@ModelAttribute userRequestDto createdUser, BindingResult bindingResult, ModelMap model) {
+		try {
+			userService.createUser(createdUser);
+			return "redirect:/users";
+		} catch (IllegalArgumentException e) {
+			// on ne réutilise pas le message exact, on met un message générique
+			model.addAttribute("user", createdUser);
+			model.addAttribute("emailError", true);
+			return "/users/userForm";
+		}
 	}
 	
     @GetMapping("/{id}")
@@ -55,7 +63,8 @@ public class UserController {
 	
     @PostMapping("/{id}/delete")
     public RedirectView delete(@PathVariable UUID id) {
-        userService.deleteUser(id);
+        // on archive au lieu de supprimer
+        userService.archiveUser(id);
         return new RedirectView("/users");
     }
     

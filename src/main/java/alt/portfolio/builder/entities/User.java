@@ -24,6 +24,8 @@ public class User implements UserDetails{
 	@Id
 	private UUID id = UUID.randomUUID();
 	
+	private boolean archiver = false;
+	
 	@Column(length = 45, nullable = false)
 	private String firstname = "";
 
