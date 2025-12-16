@@ -10,7 +10,7 @@ public class RubricRequestDto {
 	
 	public Rubric toRubric(Rubric rubric) {
 		rubric.setName(name);
-		rubric.setOrder_(order_);
+		//rubric.setOrder_(order_);
 		return rubric;
 	}
 }

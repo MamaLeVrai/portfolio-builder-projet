@@ -15,26 +15,29 @@ public class ProfileService {
 
 	@Autowired
 	private ProfileRepositories profileRepositories;
-	
-	@Autowired
-	private DbProfileService dbProfileServices;
-	
-	public List<Profile> getProfiles(){
-		return profileRepositories.findByUsername(); 
+
+	public List<Profile> getProfiles() {
+		return profileRepositories.findByArchivedFalse();
 	}
-	
+
 	public Profile createProfile(ProfileRequestDto request) {
 		// vérification : username déjà utilisé ?
-		profileRepositories.findByUsername(request.getUsername())
-			.ifPresent(u -> { throw new IllegalArgumentException("Username déjà utilisé"); });
-	
-		
+		profileRepositories.findByName(request.getUsername()).ifPresent(u -> {
+			throw new IllegalArgumentException("Username déjà utilisé");
+		});
+
 		Profile profile = request.toProfile(new Profile());
 		return profileRepositories.save(profile);
 	}
-	
+
 	public Profile getProfileById(UUID id) {
-		return profileRepositories.findById(id)
-			.orElseThrow(() -> new RuntimeException("Profile introuvable: " + id));
+		return profileRepositories.findById(id).orElseThrow(() -> new RuntimeException("Profile introuvable: " + id));
+	}
+
+	// au lieu de supprimer physiquement, on archive
+	public void archiveProfile(UUID id) {
+		Profile profile = getProfileById(id);
+		profile.setArchived(true);
+		profileRepositories.save(profile);
 	}
 }

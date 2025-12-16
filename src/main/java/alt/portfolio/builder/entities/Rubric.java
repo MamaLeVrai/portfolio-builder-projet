@@ -13,10 +13,10 @@ public class Rubric {
 	@Id
 	private UUID id = UUID.randomUUID();
 	
+	
 	@Column(length = 120, nullable = false)
 	private String name;
 	
-	private int order_;
 	
 	// order_ BYTE dans le MLD
 	@Column(name = "order_", nullable = false)

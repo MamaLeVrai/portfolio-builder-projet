@@ -1,0 +1,34 @@
+{{ > /partials/header}}
+
+<!-- html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>profiles</title>
+</head>
+<body>
+  <h1>profiles</h1>
+  <ol>
+    {{#profiles}}
+      <li>
+        {{name}}
+        
+        <form action="/profiles/{{id}}" method="get" style="display:inline;">
+          <button type="submit">Voir</button>
+        </form>
+        <form action="/profiles/{{id}}/delete" method="post" style="display:inline;">
+          <button type="submit">Supprimer</button>
+        </form>
+      </li>
+    {{/profiles}}
+  </ol>
+
+  {{^profiles}}
+    <div>
+      Aucun utilisateur à afficher
+    </div>
+  {{/profiles}}
+</body>
+</html>
+{{ > /partials/footer}}

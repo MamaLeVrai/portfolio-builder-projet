@@ -11,12 +11,12 @@ import alt.portfolio.builder.entities.User;
 
 @Repository
 public interface UserRepositories extends JpaRepository<User, UUID> {
-	
-	//public Optional<User> findByUsername(String username);
-	
+
+	public Optional<User> findByUsername(String username);
+
 	// recup utilisateurs non archivés
 	public List<User> findByArchiverFalse();
-	
-	//verif mail unique
+
+	// verif mail unique
 	Optional<User> findByEmail(String email);
 }

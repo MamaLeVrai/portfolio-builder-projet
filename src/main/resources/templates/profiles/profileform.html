@@ -1,0 +1,11 @@
+<form method = "post" action = '/profiles/create'>
+{{#profile}}
+
+	<input type = "text" placeholder = "name" name = "name" value = "{{name}}" required>
+	
+	<button type = "submit">Valider</button>
+{{/profile}}
+</form>
+<form action="/users" method="get" style="display:inline;">
+    <button type="submit">Annuler</button>
+</form>

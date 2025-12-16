@@ -10,26 +10,24 @@ import com.samskivert.mustache.Mustache;
 
 @Configuration
 public class MustacheConfig {
-@Bean
-public BeanPostProcessor mutacheHackerBeanPostProcessor() {
-	return new BeanPostProcessor() {
-		@Override
-	    public Object postProcessBeforeInitialization(Object bean, String beanName)
-	    		throws BeansException {
-			return bean;
-	    }
-	 
-	    @Override
-	    public Object postProcessAfterInitialization(Object bean, String beanName)
-	        throws BeansException {
-	      if (ClassUtils.isAssignable(bean.getClass(), Mustache.Compiler.class)
-	          || "mustacheCompiler".equals(beanName)) {
-	        Mustache.Compiler compiler = (Mustache.Compiler) bean;
-	        return compiler.defaultValue("").nullValue("");
-	      }
-	 
-	      return bean;
-	    }
-	  };
+	@Bean
+	public BeanPostProcessor mutacheHackerBeanPostProcessor() {
+		return new BeanPostProcessor() {
+			@Override
+			public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+				return bean;
+			}
+
+			@Override
+			public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+				if (ClassUtils.isAssignable(bean.getClass(), Mustache.Compiler.class)
+						|| "mustacheCompiler".equals(beanName)) {
+					Mustache.Compiler compiler = (Mustache.Compiler) bean;
+					return compiler.defaultValue("").nullValue("");
+				}
+
+				return bean;
+			}
+		};
 	}
 }

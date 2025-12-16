@@ -18,14 +18,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Getter @Setter
-public class User implements UserDetails{
-	
+@Getter
+@Setter
+public class User implements UserDetails {
+
 	@Id
 	private UUID id = UUID.randomUUID();
-	
+
 	private boolean archiver = false;
-	
+
 	@Column(length = 45, nullable = false)
 	private String firstname = "";
 
@@ -37,28 +38,37 @@ public class User implements UserDetails{
 
 	@Column(length = 255, nullable = true)
 	private String password;
-	
+
 	@Column(length = 45, nullable = false, unique = true)
 	private String email;
-	
-	@OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true )
+
+	@OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Profile> profiles;
 
 	public void addProdile(Profile profile) {
 		this.profiles.add(profile);
 		profile.setOwner(this);
-		
+
 	}
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return new ArrayList<GrantedAuthority>();
 	}
+
 	@Override
 	public String getPassword() {
 		return password;
 	}
+
 	@Override
 	public String getUsername() {
 		return username;
 	}
+
+	@Override
+	public boolean isEnabled() {
+		return !archiver;
+	}
+
 }

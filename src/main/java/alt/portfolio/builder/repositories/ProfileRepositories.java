@@ -10,13 +10,12 @@ import org.springframework.stereotype.Repository;
 import alt.portfolio.builder.entities.Profile;
 
 @Repository
-public interface ProfileRepositories extends JpaRepository<Profile, UUID>{
+public interface ProfileRepositories extends JpaRepository<Profile, UUID> {
 
-	//public Optional<Profile> findByUserId(UUID userId);
-	
-	public Optional<Profile> findByUsername(String name) ;
-	
-	public List<Profile> findByUsername();
-	
-	public List<Profile> findById();
+	// public Optional<Profile> findByUserId(UUID userId);
+
+	Optional<Profile> findByName(String name);
+
+	// retourne tous les profils non archivés
+	List<Profile> findByArchivedFalse();
 }

@@ -23,24 +23,24 @@ import alt.portfolio.builder.services.UserService;
 @RequestMapping("/users")
 @Controller
 public class UserController {
-	
+
 	@Autowired
 	private UserService userService;
-	
+
 	@Autowired
 	private DbUserServices dbUserServices;
-	
-	@GetMapping(path = {"","/"})
+
+	@GetMapping(path = { "", "/" })
 	public ModelAndView index() {
-		return new ModelAndView("/users/index","users",userService.getUsers());
+		return new ModelAndView("/users/index", "users", userService.getUsers());
 	}
-	
+
 	@GetMapping("/create")
 	public String create(ModelMap model) {
 		model.addAttribute("user", new User());
 		return "/users/userForm";
 	}
-	
+
 	@PostMapping("/create")
 	public String createUser(@ModelAttribute userRequestDto createdUser, BindingResult bindingResult, ModelMap model) {
 		try {
@@ -53,25 +53,25 @@ public class UserController {
 			return "/users/userForm";
 		}
 	}
-	
-    @GetMapping("/{id}")
-    public String show(@PathVariable UUID id, ModelMap model) {
-        User user = userService.getUserById(id);
-        model.addAttribute("user", user);
-        return "/users/show";
-    }
-	
-    @PostMapping("/{id}/delete")
-    public RedirectView delete(@PathVariable UUID id) {
-        // on archive au lieu de supprimer
-        userService.archiveUser(id);
-        return new RedirectView("/users");
-    }
-    
-    @GetMapping("/register/{username}/{password}")
-    @ResponseBody
+
+	@GetMapping("/{id}")
+	public String show(@PathVariable UUID id, ModelMap model) {
+		User user = userService.getUserById(id);
+		model.addAttribute("user", user);
+		return "/users/show";
+	}
+
+	@PostMapping("/{id}/delete")
+	public RedirectView delete(@PathVariable UUID id) {
+		// on archive au lieu de supprimer
+		userService.archiveUser(id);
+		return new RedirectView("/users");
+	}
+
+	@GetMapping("/register/{username}/{password}")
+	@ResponseBody
 	public User createUser(@PathVariable String username, @PathVariable String password) {
 		return dbUserServices.createUser(username, password);
 	}
-	
+
 }
