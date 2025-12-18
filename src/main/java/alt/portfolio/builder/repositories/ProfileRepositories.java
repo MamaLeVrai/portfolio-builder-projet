@@ -18,4 +18,7 @@ public interface ProfileRepositories extends JpaRepository<Profile, UUID> {
 
 	// retourne tous les profils non archivés
 	List<Profile> findByArchivedFalse();
+
+	// retourne les profils non archivés d'un utilisateur donné
+	List<Profile> findByOwnerIdAndArchivedFalse(UUID ownerId);
 }

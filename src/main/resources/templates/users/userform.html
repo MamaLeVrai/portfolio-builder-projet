@@ -1,23 +1,49 @@
 {{ > /partials/header}}
 
-<form method = "post" action = '/users/create'>
-{{#user}}
+<div class="container">
+    <div class="card" style="max-width: 600px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Créer un utilisateur</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" action="/users/create">
+                {{#user}}
+                <div class="form-group">
+                    <label class="form-label">Prénom</label>
+                    <input type="text" placeholder="Prénom" name="firstname" value="{{firstname}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nom</label>
+                    <input type="text" placeholder="Nom" name="lastname" value="{{lastname}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Login</label>
+                    <input type="text" placeholder="Login" name="username" value="{{username}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" placeholder="Email" name="email" value="{{email}}" required>
+                    {{#emailError}}
+                    <div class="error">Cet email est déjà utilisé, veuillez en choisir un autre.</div>
+                    {{/emailError}}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Mot de passe</label>
+                    <input type="password" placeholder="Mot de passe (min. 6 caractères)" name="password" required minlength="6">
+                </div>
+                
+                <div class="button-container">
+                    <button type="submit" class="btn btn-primary">Valider</button>
+                    <a href="/users" class="btn btn-secondary">Annuler</a>
+                </div>
+                {{/user}}
+            </form>
+        </div>
+    </div>
+</div>
 
-	<input type = "text" placeholder = "Prénom" name = "firstname" value = "{{firstname}}" required>
-	<input type = "text" placeholder = "Nom" name = "lastname" value = "{{lastname}}" required>
-	<input type = "text" placeholder = "Login" name = "username" value = "{{username}}" required>
-	<input type = "email" placeholder = "Email" name = "email" value = "{{email}}" required>
-	{{#emailError}}
-	<div class="error" style="color:red;">Cet email est déjà utilisé, veuillez en choisir un autre.</div>
-	{{/emailError}}
-	<input type = "password" placeholder = "Mot de passe" name = "password" required minlength="6">
-	
-	<button type = "submit">Valider</button>	
-
-
-{{/user}}
-</form>
-	<form action="/users" method="get" style="display:inline;">
-          <button type="submit">Annuler</button>
-    </form>
 {{ > /partials/footer}}

@@ -1,0 +1,50 @@
+{{ > /partials/header}}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Profils de {{user.firstname}} {{user.lastname}}</title>
+</head>
+<body>
+  <div class="container">
+    <div class="panel">
+      <h1>Profils de {{user.firstname}} {{user.lastname}}</h1>
+
+      {{#canAddProfile}}
+      <div class="action-buttons">
+        <a href="/users/{{userId}}/profiles/create" class="btn">Ajouter un profil</a>
+      </div>
+      {{/canAddProfile}}
+
+      <div class="cards">
+        {{#profiles}}
+        <div class="card">
+          <div class="card-content">
+            <div class="card-title">{{name}}</div>
+            {{#description}}
+            <div class="card-subtitle">{{description}}</div>
+            {{/description}}
+          </div>
+          <div class="card-actions">
+            <a href="/users/{{userId}}/profiles/{{id}}" class="btn btn-secondary" style="text-decoration: none;">Voir</a>
+            <form action="/users/{{userId}}/profiles/{{id}}/delete" method="post" style="display:inline;">
+              <button type="submit" class="btn btn-danger">Supprimer</button>
+            </form>
+          </div>
+        </div>
+        {{/profiles}}
+      </div>
+
+      {{^profiles}}
+        <div>Aucun profil à afficher pour cet utilisateur</div>
+      {{/profiles}}
+
+      <div class="action-buttons">
+        <a href="/users" class="btn btn-secondary" style="text-decoration: none;">Retour aux utilisateurs</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+{{ > /partials/footer}}

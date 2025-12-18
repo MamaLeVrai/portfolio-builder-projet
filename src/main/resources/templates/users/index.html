@@ -1,40 +1,45 @@
 {{ > /partials/header}}
 
-<!-- html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Utilisateurs</title>
-</head>
-<body>
-  <h1>Utilisateurs</h1>
-
-  <form action="/users/create" method="get" style="margin-bottom:20px;">
-    <button type="submit">Ajouter un utilisateur</button>
-  </form>
-
-  <ol>
-    {{#users}}
-      <li>
-        {{firstname}} {{lastname}} {{username}} ({{email}})
-        <form action="/users/{{id}}" method="get" style="display:inline;">
-          <button type="submit">Voir</button>
-        </form>
-        <form action="/users/{{id}}/delete" method="post" style="display:inline;">
-          <button type="submit">Supprimer</button>
-        </form>
-        <form action="/profils/{{id}}" method="get" style="display:inline;">
-          <button type="submit">Voir Profil</button>
-      </li>
-    {{/users}}
-  </ol>
-
-  {{^users}}
-    <div>
-      Aucun utilisateur à afficher
+<div class="container">
+    <h1>Gestion des Utilisateurs</h1>
+    
+    <div style="margin-bottom: 30px;">
+        <a href="/users/create" class="btn btn-primary">+ Ajouter un utilisateur</a>
     </div>
-  {{/users}}
-</body>
-</html>
+
+    <div class="card-grid">
+        {{#users}}
+        <div class="card-user">
+            <div class="user-header">
+                <div class="user-avatar">
+                    {{firstname}} {{lastname}}
+                </div>
+                <div class="user-info">
+                    <h4>{{firstname}} {{lastname}}</h4>
+                    <div class="user-email">{{email}}</div>
+                    <div class="text-muted">@{{username}}</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="/users/{{id}}" class="btn btn-primary btn-small">Voir</a>
+                <a href="/users/{{id}}/profiles" class="btn btn-outline-primary btn-small">Profils</a>
+                <form action="/users/{{id}}/delete" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
+                </form>
+            </div>
+        </div>
+        {{/users}}
+    </div>
+
+    {{^users}}
+    <div class="card text-center">
+        <div class="card-body">
+            <h3>Aucun utilisateur</h3>
+            <p class="text-muted">Commencez par ajouter votre premier utilisateur</p>
+            <a href="/users/create" class="btn btn-primary mt-20">Créer un utilisateur</a>
+        </div>
+    </div>
+    {{/users}}
+</div>
+
 {{ > /partials/footer}}

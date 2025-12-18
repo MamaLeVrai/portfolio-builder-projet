@@ -1,29 +1,61 @@
 {{ > /partials/header}}
 
-<!-- html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Détails utilisateur</title>
-</head>
-<body>
-  <h1>Détails de l’utilisateur</h1>
+<div class="container">
+    <div class="card-profile" style="max-width: 700px; margin: 50px auto;">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{#user}}{{firstname}} {{lastname}}{{/user}}
+            </div>
+            <div class="profile-info">
+                {{#user}}
+                <h3>{{firstname}} {{lastname}}</h3>
+                <div class="profile-role">@{{username}}</div>
+                {{/user}}
+            </div>
+        </div>
+        
+        <div class="profile-details">
+            {{#user}}
+            <div class="profile-detail-item">
+                <span class="detail-label">ID</span>
+                <span class="detail-value">{{id}}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="detail-label">Prénom</span>
+                <span class="detail-value">{{firstname}}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="detail-label">Nom</span>
+                <span class="detail-value">{{lastname}}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="detail-label">Email</span>
+                <span class="detail-value">{{email}}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="detail-label">Username</span>
+                <span class="detail-value">{{username}}</span>
+            </div>
+            {{/user}}
+        </div>
+        
+        <div class="button-container mt-30">
+            <a href="/users" class="btn btn-primary">Retour à la liste</a>
+            {{#user}}
+            <a href="/users/{{id}}/profiles" class="btn btn-outline-primary">Voir les profils</a>
+            {{/user}}
+        </div>
+    </div>
+    
+    {{^user}}
+    <div class="card text-center" style="max-width: 500px; margin: 50px auto;">
+        <div class="card-body">
+            <h3 class="text-danger">Utilisateur introuvable</h3>
+            <p class="text-muted">L'utilisateur que vous recherchez n'existe pas.</p>
+            <a href="/users" class="btn btn-primary mt-20">Retour à la liste</a>
+        </div>
+    </div>
+    {{/user}}
+</div>
 
-  {{#user}}
-    <p><strong>ID:</strong> {{id}}</p>
-    <p><strong>Prénom:</strong> {{firstname}}</p>
-    <p><strong>Nom:</strong> {{lastname}}</p>
-    <p><strong>Email:</strong> {{email}}</p>
-  {{/user}}
-
-  {{^user}}
-    <p>Utilisateur introuvable.</p>
-  {{/user}}
-
-  <form action="/users" method="get" style="margin-top:16px;">
-    <button type="submit">Retour</button>
-  </form>
-</body>
-</html>
 {{ > /partials/footer}}

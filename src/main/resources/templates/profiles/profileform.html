@@ -1,11 +1,40 @@
-<form method = "post" action = '/profiles/create'>
-{{#profile}}
+{{ > /partials/header}}
 
-	<input type = "text" placeholder = "name" name = "name" value = "{{name}}" required>
-	
-	<button type = "submit">Valider</button>
-{{/profile}}
-</form>
-<form action="/users" method="get" style="display:inline;">
-    <button type="submit">Annuler</button>
-</form>
+<div class="container">
+    <div class="card" style="max-width: 600px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Créer un profil</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" action="/profiles/create">
+                {{#profile}}
+                <div class="form-group">
+                    <label for="username" class="form-label">Nom du profil</label>
+                    <input id="username" type="text" placeholder="Nom du profil" name="username" value="{{name}}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="bio" class="form-label">Description</label>
+                    <textarea id="bio" name="bio" placeholder="Description du profil..." rows="5">{{bio}}</textarea>
+                </div>
+                {{/profile}}
+                
+                {{#ownerId}}
+                <input type="hidden" name="ownerId" value="{{.}}">
+                {{/ownerId}}
+                
+                <div class="button-container">
+                    <button type="submit" class="btn btn-primary">Créer le profil</button>
+                    {{#ownerId}}
+                    <a href="/users/{{.}}/profiles" class="btn btn-secondary">Annuler</a>
+                    {{/ownerId}}
+                    {{^ownerId}}
+                    <a href="/users" class="btn btn-secondary">Annuler</a>
+                    {{/ownerId}}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{ > /partials/footer}}

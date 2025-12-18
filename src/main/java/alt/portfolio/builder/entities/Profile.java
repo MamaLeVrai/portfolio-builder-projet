@@ -28,6 +28,9 @@ public class Profile {
 	@Column(length = 150, nullable = false)
 	private String name;
 
+	@Column(length = 500, nullable = false)
+	private String description = "";
+
 	@ManyToOne(optional = true)
 	private Template template;
 

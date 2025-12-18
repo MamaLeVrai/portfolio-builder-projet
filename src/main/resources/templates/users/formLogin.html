@@ -1,8 +1,18 @@
 {{ > /partials/header}}
 
-<form method="post" action="./login">
-    <input type="text" name="username" placeholder="E-mail address or username">
-    <input type="password" name="password" placeholder="Password">
-    <button type="submit">Login</button>
-</form>
+<div class="container">
+    <div class="card-login">
+        <h2>Connexion</h2>
+        <form method="post" action="./login">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="E-mail ou nom d'utilisateur" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Mot de passe" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+        </form>
+    </div>
+</div>
+
 {{ > /partials/footer}}

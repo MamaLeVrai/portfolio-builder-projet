@@ -1,34 +1,72 @@
 {{ > /partials/header}}
 
-<!-- html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>profiles</title>
-</head>
-<body>
-  <h1>profiles</h1>
-  <ol>
-    {{#profiles}}
-      <li>
-        {{name}}
-        
-        <form action="/profiles/{{id}}" method="get" style="display:inline;">
-          <button type="submit">Voir</button>
-        </form>
-        <form action="/profiles/{{id}}/delete" method="post" style="display:inline;">
-          <button type="submit">Supprimer</button>
-        </form>
-      </li>
-    {{/profiles}}
-  </ol>
-
-  {{^profiles}}
-    <div>
-      Aucun utilisateur à afficher
+<div class="container">
+    <h1>Gestion des Profils</h1>
+    
+    {{#canAddProfile}}
+    <div class="flex-between mb-30">
+        <a href="/profiles/create?ownerId={{profiles.0.contextOwnerId}}" class="btn btn-primary">
+            + Ajouter un profil
+        </a>
     </div>
-  {{/profiles}}
-</body>
-</html>
+    {{/canAddProfile}}
+
+    {{#profiles}}
+    <div class="card-grid">
+        {{#profiles}}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{name}}</h3>
+            </div>
+            <div class="card-body">
+                {{#description}}
+                <p>{{description}}</p>
+                {{/description}}
+                {{^description}}
+                <p class="text-muted">Aucune description</p>
+                {{/description}}
+                
+                {{#ownerFirstname}}
+                <div class="mt-20">
+                    <span class="badge badge-primary">
+                        Par: {{ownerFirstname}} {{ownerLastname}}
+                    </span>
+                </div>
+                {{/ownerFirstname}}
+            </div>
+            <div class="card-footer">
+                <a href="/profiles/{{id}}" class="btn btn-primary btn-small">Voir</a>
+                {{#contextOwnerId}}
+                <form action="/profiles/{{id}}/delete?ownerId={{contextOwnerId}}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
+                </form>
+                {{/contextOwnerId}}
+                {{^contextOwnerId}}
+                <form action="/profiles/{{id}}/delete" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
+                </form>
+                {{/contextOwnerId}}
+            </div>
+        </div>
+        {{/profiles}}
+    </div>
+    {{/profiles}}
+
+    {{^profiles}}
+    <div class="card text-center">
+        <div class="card-body">
+            <h3>Aucun profil</h3>
+            <p class="text-muted">Aucun profil n'a été créé pour le moment</p>
+            {{#canAddProfile}}
+            <a href="/profiles/create" class="btn btn-primary mt-20">Créer un profil</a>
+            {{/canAddProfile}}
+        </div>
+    </div>
+    {{/profiles}}
+    
+    <div class="mt-30">
+        <a href="/users" class="btn btn-secondary">Retour aux utilisateurs</a>
+    </div>
+</div>
+
 {{ > /partials/footer}}

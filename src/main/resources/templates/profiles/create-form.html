@@ -1,0 +1,38 @@
+{{ > /partials/header}}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Créer un profil - {{user.firstname}} {{user.lastname}}</title>
+</head>
+<body>
+  <div class="container">
+    <div class="panel">
+      <h1>Créer un profil pour {{user.firstname}} {{user.lastname}}</h1>
+      
+      {{#error}}
+      <div style="color: #e53935; margin-bottom: 16px; padding: 12px; background: rgba(229,57,53,0.1); border-radius: 8px;">
+        {{error}}
+      </div>
+      {{/error}}
+      
+      <form method="post" action="/users/{{userId}}/profiles/create">
+        {{#profile}}
+          <label for="username">Nom du profil</label>
+          <input id="username" type="text" placeholder="Nom" name="username" value="{{name}}" required>
+
+          <label for="bio" class="mt-16">Description</label>
+          <textarea id="bio" name="bio" placeholder="Description" rows="4"></textarea>
+        {{/profile}}
+        
+        <div class="mt-16" style="display: flex; gap: 12px;">
+          <button type="submit" class="btn">Valider</button>
+          <a href="/users/{{userId}}/profiles" class="btn btn-secondary" style="display: inline-block; text-decoration: none;">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
+{{ > /partials/footer}}
