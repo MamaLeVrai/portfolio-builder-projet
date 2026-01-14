@@ -12,33 +12,31 @@ import org.springframework.stereotype.Service;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.repositories.UserRepositories;
 
+/**
+ * Service pour l'authentification et les opérations de base de données des utilisateurs
+ */
 @Service
 public class DbUserServices implements UserDetailsService {
 
 	@Autowired
-	private UserRepositories uRepo;
+	private UserRepositories userRepositories;
 
 	@Autowired
-	private PasswordEncoder pEncoder;
+	private PasswordEncoder passwordEncoder;
 
+	/**
+	 * Charge un utilisateur par son nom d'utilisateur (utilisé par Spring Security)
+	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		Optional<User> optUser = uRepo.findByUsername(username);
+		Optional<User> optUser = userRepositories.findByUsername(username);
 		return optUser.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable: " + username));
 	}
 
+	/**
+	 * Encode le mot de passe d'un utilisateur
+	 */
 	public void encodePassword(User user) {
-		user.setPassword(pEncoder.encode(user.getPassword()));
-	}
-
-	public User createUser(String login, String password) {
-		User user = new User();
-		user.setFirstname(login);
-		user.setLastname(login);
-		user.setEmail(login + "@example.com");
-		user.setUsername(login);
-		user.setPassword(password);
-		encodePassword(user);
-		return uRepo.save(user);
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
 	}
 }

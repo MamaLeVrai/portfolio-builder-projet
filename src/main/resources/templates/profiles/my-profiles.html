@@ -14,10 +14,12 @@
             <div class="alert alert-danger">{{error}}</div>
             {{/error}}
             
+            {{#hasProfiles}}
             <div style="margin-bottom: 20px;">
                 <a href="/profiles/new" class="btn btn-primary">+ Créer un nouveau profil</a>
             </div>
-            
+            {{/hasProfiles}}
+
             {{#profiles}}
             {{#.}}
             <div class="profile-card" style="border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px;">

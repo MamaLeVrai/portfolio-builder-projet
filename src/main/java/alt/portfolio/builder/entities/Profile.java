@@ -38,11 +38,11 @@ public class Profile {
 	@Column(length = 255, nullable = true)
 	private String imageUrl;
 
-	@Column(nullable = false, updatable = false)
+	@Column(nullable = true, updatable = false)
 	@CreationTimestamp
 	private LocalDateTime createdAt;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	@UpdateTimestamp
 	private LocalDateTime updatedAt;
 

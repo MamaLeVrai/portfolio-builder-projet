@@ -17,6 +17,10 @@ import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Entité représentant un utilisateur du système.
+ * Implémente UserDetails pour l'intégration avec Spring Security.
+ */
 @Entity
 @Getter
 @Setter
@@ -25,6 +29,7 @@ public class User implements UserDetails {
 	@Id
 	private UUID id = UUID.randomUUID();
 
+	/** Indique si l'utilisateur est archivé (soft delete) */
 	private boolean archiver = false;
 
 	@Column(length = 45, nullable = false)
@@ -36,39 +41,37 @@ public class User implements UserDetails {
 	@Column(length = 45, nullable = false, unique = true)
 	private String username;
 
-	@Column(length = 255, nullable = true)
+	@Column(length = 255)
 	private String password;
 
 	@Column(length = 45, nullable = false, unique = true)
 	private String email;
 
+	/** Rôle de l'utilisateur (USER, ADMIN, etc.) */
+	@Column(length = 20)
+	private String role;
+
+	/** Liste des profils appartenant à cet utilisateur */
 	@OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Profile> profiles;
 
+	/**
+	 * Ajoute un profil à cet utilisateur et établit la relation bidirectionnelle
+	 */
 	public void addProfile(Profile profile) {
 		this.profiles.add(profile);
 		profile.setOwner(this);
-
 	}
+
+	// ========== Implémentation de UserDetails pour Spring Security ==========
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return new ArrayList<GrantedAuthority>();
-	}
-
-	@Override
-	public String getPassword() {
-		return password;
-	}
-
-	@Override
-	public String getUsername() {
-		return username;
+		return new ArrayList<>();
 	}
 
 	@Override
 	public boolean isEnabled() {
 		return !archiver;
 	}
-
 }

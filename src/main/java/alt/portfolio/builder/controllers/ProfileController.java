@@ -1,31 +1,29 @@
 package alt.portfolio.builder.controllers;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import alt.portfolio.builder.dtos.ProfileCreateDto;
-import alt.portfolio.builder.dtos.ProfileRequestDto;
 import alt.portfolio.builder.dtos.ProfileUpdateDto;
 import alt.portfolio.builder.entities.Profile;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.services.ProfileService;
+import alt.portfolio.builder.utils.AuthUtils;
 import jakarta.validation.Valid;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Contrôleur pour la gestion des profils
+ */
 @RequestMapping("/profiles")
 @Controller
 public class ProfileController {
@@ -33,102 +31,28 @@ public class ProfileController {
 	@Autowired
 	private ProfileService profileService;
 
-	@GetMapping(path = { "", "/" })
-	public ModelAndView index() {
-		// [ATTENTION] Cette route affiche TOUS les profils de tous les utilisateurs
-		// Elle ne devrait être utilisée que pour un admin ou une vue globale
-		System.out.println("⚠️  ATTENTION: Route globale /profiles appelée - affiche TOUS les profils");
-		return new ModelAndView("/profiles/index", "profiles", profileService.getProfiles());
-	}
-
-	// [Ajout] Formulaire création avec contrôle de propriétaire (ownerId)
-	@GetMapping("/create")
-	public Object create(@RequestParam(name = "ownerId", required = false) UUID ownerId, ModelMap model) {
-		if (ownerId != null) {
-			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			if (auth == null || !(auth.getPrincipal() instanceof User)) {
-				return new RedirectView("/users/" + ownerId + "/profiles");
-			}
-			User currentUser = (User) auth.getPrincipal();
-			if (!ownerId.equals(currentUser.getId())) {
-				return new RedirectView("/users/" + ownerId + "/profiles");
-			}
-		}
-		model.addAttribute("profile", new Profile());
-		if (ownerId != null) model.addAttribute("ownerId", ownerId);
-		return "/profiles/profileform";
-	}
-
-	// [Ajout] Création de profil: redirection contextuelle vers la liste de l'utilisateur
-	@PostMapping("/create")
-	public String createProfile(@ModelAttribute ProfileRequestDto createdProfile, BindingResult bindingResult,
-			ModelMap model) {
-		try {
-			System.out.println("🔵 POST /profiles/create - Création d'un profil");
-			System.out.println("   ownerId reçu dans le DTO: " + createdProfile.getOwnerId());
-			
-			Profile profile = profileService.createProfile(createdProfile);
-			
-			// Toujours rediriger vers la liste des profils de l'utilisateur propriétaire
-			UUID ownerId = profile.getOwner().getId();
-			String redirectUrl = "redirect:/users/" + ownerId + "/profiles";
-			
-			System.out.println("   Profil créé avec owner: " + ownerId);
-			System.out.println("   ✅ Redirection vers: " + redirectUrl);
-			
-			return redirectUrl;
-		} catch (IllegalArgumentException e) {
-			System.out.println("   ❌ Erreur lors de la création: " + e.getMessage());
-			Profile p = new Profile();
-			p.setName(createdProfile.getUsername());
-			model.addAttribute("profile", p);
-			if (createdProfile.getOwnerId() != null) model.addAttribute("ownerId", createdProfile.getOwnerId());
-			return "/profiles/profileform";
-		}
-	}
-
-	@GetMapping("/{id}")
-	public String show(@PathVariable UUID id, ModelMap model) {
-		Profile profile = profileService.getProfileById(id);
-		model.addAttribute("profile", profile);
-		return "/profiles/show";
-	}
-
-	// [Ajout] Suppression (archive) avec redirection vers la liste contextuelle si ownerId présent
-	@PostMapping("/{id}/delete")
-	public RedirectView delete(@PathVariable UUID id, @RequestParam(name = "ownerId", required = false) UUID ownerId) {
-		profileService.archiveProfile(id);
-		if (ownerId != null) {
-			return new RedirectView("/users/" + ownerId + "/profiles");
-		}
-		return new RedirectView("/profiles");
-	}
-
-	// US-006: Create profile (new route)
+	/**
+	 * US-006: Affiche le formulaire de création de profil
+	 */
 	@GetMapping("/new")
 	public String newProfile(ModelMap model) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+		if (!AuthUtils.isAuthenticated()) {
 			return "redirect:/login";
 		}
-
 		model.addAttribute("profileCreate", new ProfileCreateDto());
 		return "/profiles/create";
 	}
 
+	/**
+	 * US-006: Crée un nouveau profil
+	 */
 	@PostMapping("/new")
 	public String createNewProfile(@Valid @ModelAttribute("profileCreate") ProfileCreateDto createDto,
-			BindingResult bindingResult, ModelMap model, RedirectAttributes redirectAttributes) {
-		
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+			ModelMap model, RedirectAttributes redirectAttributes) {
+
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
 			return "redirect:/login";
-		}
-
-		User currentUser = (User) auth.getPrincipal();
-
-		if (bindingResult.hasErrors()) {
-			return "/profiles/create";
 		}
 
 		try {
@@ -141,32 +65,46 @@ public class ProfileController {
 		}
 	}
 
-	// US-007: List my profiles
+	/**
+	 * US-007: Liste les profils de l'utilisateur connecté
+	 */
 	@GetMapping("/my-profiles")
 	public String myProfiles(ModelMap model) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
 			return "redirect:/login";
 		}
 
-		User currentUser = (User) auth.getPrincipal();
-		model.addAttribute("profiles", profileService.getProfilesByUserSorted(currentUser));
+		List<Profile> profiles = profileService.getProfilesByUserSorted(currentUser);
+		model.addAttribute("profiles", profiles);
+		model.addAttribute("hasProfiles", !profiles.isEmpty());
 		model.addAttribute("user", currentUser);
 		return "/profiles/my-profiles";
 	}
 
-	// US-008: Edit profile
+	/**
+	 * Affiche les détails d'un profil
+	 */
+	@GetMapping("/{id}")
+	public String show(@PathVariable UUID id, ModelMap model) {
+		Profile profile = profileService.getProfileById(id);
+		model.addAttribute("profile", profile);
+		return "/profiles/show";
+	}
+
+	/**
+	 * US-008: Affiche le formulaire d'édition d'un profil
+	 */
 	@GetMapping("/{id}/edit")
 	public String editProfile(@PathVariable UUID id, ModelMap model) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
 			return "redirect:/login";
 		}
 
-		User currentUser = (User) auth.getPrincipal();
 		Profile profile = profileService.getProfileById(id);
 
-		// Check ownership
+		// Vérification de propriété
 		if (!profile.getOwner().getId().equals(currentUser.getId())) {
 			return "redirect:/profiles/my-profiles";
 		}
@@ -185,26 +123,20 @@ public class ProfileController {
 		return "/profiles/edit";
 	}
 
+	/**
+	 * US-008: Met à jour un profil
+	 */
 	@PostMapping("/{id}/edit")
 	public String updateProfile(@PathVariable UUID id,
 			@Valid @ModelAttribute("profileUpdate") ProfileUpdateDto updateDto,
-			BindingResult bindingResult, ModelMap model, RedirectAttributes redirectAttributes) {
-		
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+			ModelMap model, RedirectAttributes redirectAttributes) {
+
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
 			return "redirect:/login";
 		}
 
-		User currentUser = (User) auth.getPrincipal();
 		Profile profile = profileService.getProfileById(id);
-
-		if (bindingResult.hasErrors()) {
-			model.addAttribute("profile", profile);
-			model.addAttribute("statusIsDraft", "draft".equals(updateDto.getStatus()));
-			model.addAttribute("statusIsPublished", "published".equals(updateDto.getStatus()));
-			model.addAttribute("statusIsArchived", "archived".equals(updateDto.getStatus()));
-			return "/profiles/edit";
-		}
 
 		try {
 			profileService.updateProfile(id, updateDto, currentUser);
@@ -220,15 +152,15 @@ public class ProfileController {
 		}
 	}
 
-	// US-009: Duplicate profile
+	/**
+	 * US-009: Duplique un profil
+	 */
 	@PostMapping("/{id}/duplicate")
 	public String duplicateProfile(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
 			return "redirect:/login";
 		}
-
-		User currentUser = (User) auth.getPrincipal();
 
 		try {
 			profileService.duplicateProfile(id, currentUser);
@@ -240,15 +172,15 @@ public class ProfileController {
 		return "redirect:/profiles/my-profiles";
 	}
 
-	// US-010: Delete profile (new route with ownership check)
+	/**
+	 * US-010: Supprime un profil
+	 */
 	@PostMapping("/{id}/delete-confirmed")
 	public String deleteProfileConfirmed(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
 			return "redirect:/login";
 		}
-
-		User currentUser = (User) auth.getPrincipal();
 
 		try {
 			profileService.deleteProfile(id, currentUser);
@@ -260,15 +192,16 @@ public class ProfileController {
 		return "redirect:/profiles/my-profiles";
 	}
 
-	// US-011: Set default profile
+	/**
+	 * US-011: Définit un profil comme profil par défaut
+	 */
 	@PostMapping("/{id}/set-default")
 	public String setDefaultProfile(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
 			return "redirect:/login";
 		}
 
-		User currentUser = (User) auth.getPrincipal();
 
 		try {
 			profileService.setDefaultProfile(id, currentUser);

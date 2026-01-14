@@ -1,0 +1,44 @@
+{{ > /partials/header}}
+
+<div class="container">
+    <div class="card" style="max-width: 800px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Détails de l'utilisateur</h2>
+        </div>
+        <div class="card-body">
+            {{#user}}
+            <div style="margin-bottom: 20px;">
+                <p><strong>Nom d'utilisateur:</strong> {{username}}</p>
+                <p><strong>Prénom:</strong> {{firstname}}</p>
+                <p><strong>Nom:</strong> {{lastname}}</p>
+                <p><strong>Email:</strong> {{email}}</p>
+                <p><strong>Rôle:</strong>
+                    {{#role}}
+                        <span style="background-color: #ffc107; color: #000; padding: 2px 8px; border-radius: 3px;">{{role}}</span>
+                    {{/role}}
+                    {{^role}}
+                        <span>USER</span>
+                    {{/role}}
+                </p>
+                <p><strong>Statut:</strong>
+                    {{#archiver}}
+                        <span style="background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 3px;">Archivé</span>
+                    {{/archiver}}
+                    {{^archiver}}
+                        <span style="background-color: #28a745; color: white; padding: 2px 8px; border-radius: 3px;">Actif</span>
+                    {{/archiver}}
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="/admin/users" class="btn btn-secondary">Retour à la liste</a>
+                <a href="/admin/users/{{id}}/edit" class="btn btn-primary">Éditer</a>
+                <a href="/admin/users/{{id}}/profiles" class="btn btn-primary">Voir les profils</a>
+            </div>
+            {{/user}}
+        </div>
+    </div>
+</div>
+
+{{ > /partials/footer}}
+

@@ -1,0 +1,81 @@
+{{ > /partials/header}}
+
+<div class="container">
+    <div class="card" style="max-width: 1200px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Gestion des utilisateurs (Admin)</h2>
+        </div>
+        <div class="card-body">
+            {{#successMessage}}
+            <div class="alert alert-success">{{successMessage}}</div>
+            {{/successMessage}}
+
+            {{#error}}
+            <div class="alert alert-danger">{{error}}</div>
+            {{/error}}
+
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead>
+                    <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                        <th style="padding: 12px; text-align: left;">Nom d'utilisateur</th>
+                        <th style="padding: 12px; text-align: left;">Nom complet</th>
+                        <th style="padding: 12px; text-align: left;">Email</th>
+                        <th style="padding: 12px; text-align: left;">Rôle</th>
+                        <th style="padding: 12px; text-align: center;">Statut</th>
+                        <th style="padding: 12px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#users}}
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 12px;">{{username}}</td>
+                        <td style="padding: 12px;">{{firstname}} {{lastname}}</td>
+                        <td style="padding: 12px;">{{email}}</td>
+                        <td style="padding: 12px;">
+                            {{#role}}
+                                <span style="background-color: #ffc107; color: #000; padding: 2px 8px; border-radius: 3px; font-size: 12px;">{{role}}</span>
+                            {{/role}}
+                            {{^role}}
+                                <span style="color: #999;">USER</span>
+                            {{/role}}
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            {{#archiver}}
+                                <span style="background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px;">Archivé</span>
+                            {{/archiver}}
+                            {{^archiver}}
+                                <span style="background-color: #28a745; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px;">Actif</span>
+                            {{/archiver}}
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
+                                <a href="/admin/users/{{id}}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Voir</a>
+                                <a href="/admin/users/{{id}}/profiles" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Profils</a>
+                                <a href="/admin/users/{{id}}/edit" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Éditer</a>
+
+                                <form method="post" action="/admin/users/{{id}}/toggle-archive" style="margin: 0;">
+                                    {{#archiver}}
+                                        <button type="submit" class="btn" style="padding: 5px 10px; font-size: 12px; background-color: #28a745; color: white;">Désarchiver</button>
+                                    {{/archiver}}
+                                    {{^archiver}}
+                                        <button type="submit" class="btn" style="padding: 5px 10px; font-size: 12px; background-color: #ffc107; color: #000;">Archiver</button>
+                                    {{/archiver}}
+                                </form>
+
+                                <form method="post" action="/admin/users/{{id}}/delete"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur et tous ses profils ?');"
+                                      style="margin: 0;">
+                                    <button type="submit" class="btn" style="padding: 5px 10px; font-size: 12px; background-color: #dc3545; color: white;">Supprimer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {{/users}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{ > /partials/footer}}
+

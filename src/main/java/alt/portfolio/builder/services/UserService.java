@@ -8,11 +8,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import alt.portfolio.builder.dtos.UserRegisterDto;
-import alt.portfolio.builder.dtos.UserRequestDto;
 import alt.portfolio.builder.dtos.UserUpdateDto;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.repositories.UserRepositories;
 
+/**
+ * Service de gestion des utilisateurs
+ */
 @Service
 public class UserService {
 
@@ -25,40 +27,47 @@ public class UserService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	/**
+	 * Récupère tous les utilisateurs non archivés
+	 */
 	public List<User> getUsers() {
 		return userRepositories.findByArchiverFalse();
 	}
 
-	public User createUser(UserRequestDto userRequest) {
-		// vérification : email déjà utilisé ?
-		userRepositories.findByEmail(userRequest.getEmail()).ifPresent(u -> {
-			throw new IllegalArgumentException("Email déjà utilisé");
-		});
-
-		User user = userRequest.toUser(new User());
-		dbUserServices.encodePassword(user);
-		return userRepositories.save(user);
+	/**
+	 * Récupère tous les utilisateurs (y compris archivés) - Admin uniquement
+	 */
+	public List<User> getAllUsers() {
+		return userRepositories.findAll();
 	}
 
+	/**
+	 * Récupère un utilisateur par son ID
+	 */
 	public User getUserById(UUID id) {
-		return userRepositories.findById(id).orElseThrow(() -> new RuntimeException("Utilisateur introuvable: " + id));
+		return userRepositories.findById(id)
+			.orElseThrow(() -> new RuntimeException("Utilisateur introuvable: " + id));
 	}
 
-	// au lieu de supprimer physiquement, on archive
+	/**
+	 * Archive un utilisateur (soft delete)
+	 */
 	public void archiveUser(UUID id) {
 		User user = getUserById(id);
 		user.setArchiver(true);
 		userRepositories.save(user);
 	}
 
-	// Registration method for US-001
+	/**
+	 * US-001: Enregistre un nouvel utilisateur
+	 */
 	public User registerUser(UserRegisterDto registerDto) {
-		// Check if email already exists
+		// Vérification email
 		userRepositories.findByEmail(registerDto.getEmail()).ifPresent(u -> {
 			throw new IllegalArgumentException("Cet email est déjà utilisé");
 		});
 
-		// Check if username already exists
+		// Vérification username
 		userRepositories.findByUsername(registerDto.getUsername()).ifPresent(u -> {
 			throw new IllegalArgumentException("Ce nom d'utilisateur est déjà utilisé");
 		});
@@ -68,11 +77,13 @@ public class UserService {
 		return userRepositories.save(user);
 	}
 
-	// Update user method for US-004
+	/**
+	 * US-004: Met à jour un utilisateur
+	 */
 	public User updateUser(UUID userId, UserUpdateDto updateDto) {
 		User user = getUserById(userId);
 
-		// Check if email is being changed and if new email is already used
+		// Vérification email si modifié
 		if (!user.getEmail().equals(updateDto.getEmail())) {
 			userRepositories.findByEmail(updateDto.getEmail()).ifPresent(u -> {
 				if (!u.getId().equals(userId)) {
@@ -83,7 +94,7 @@ public class UserService {
 
 		user = updateDto.updateUser(user);
 
-		// Handle password change if provided
+		// Gestion du changement de mot de passe
 		if (updateDto.getNewPassword() != null && !updateDto.getNewPassword().isEmpty()) {
 			if (!passwordEncoder.matches(updateDto.getCurrentPassword(), user.getPassword())) {
 				throw new IllegalArgumentException("Le mot de passe actuel est incorrect");
@@ -97,10 +108,25 @@ public class UserService {
 		return userRepositories.save(user);
 	}
 
-	// Delete account method for US-005
+	/**
+	 * Met à jour un utilisateur (admin)
+	 */
+	public void updateUser(User user) {
+		userRepositories.save(user);
+	}
+
+	/**
+	 * US-005: Supprime le compte d'un utilisateur
+	 */
 	public void deleteAccount(UUID userId) {
 		User user = getUserById(userId);
-		// Physical deletion (profiles will be cascade deleted due to orphanRemoval = true)
 		userRepositories.delete(user);
+	}
+
+	/**
+	 * Supprime un utilisateur (admin)
+	 */
+	public void deleteUser(UUID userId) {
+		userRepositories.deleteById(userId);
 	}
 }
