@@ -38,7 +38,7 @@ public class SecurityConfig {
 								PathPatternRequestMatcher.withDefaults().matcher("/profiles/register/**"))
 						.permitAll().anyRequest().authenticated())
 				.csrf(AbstractHttpConfigurer::disable)
-				.formLogin((form) -> form.loginPage("/login").defaultSuccessUrl("/users", true).permitAll())
+				.formLogin((form) -> form.loginPage("/login").defaultSuccessUrl("/profiles/my-profiles", true).permitAll())
 				.logout((logout) -> logout.logoutUrl("/logout").logoutSuccessUrl("/login").permitAll());
 		return http.build();
 	}
