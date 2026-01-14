@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import alt.portfolio.builder.dtos.userRequestDto;
+import alt.portfolio.builder.dtos.UserRequestDto;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.services.DbUserServices;
 import alt.portfolio.builder.services.UserService;
@@ -44,7 +44,7 @@ public class UserController {
 	}
 
 	@PostMapping("/create")
-	public String createUser(@ModelAttribute userRequestDto createdUser, BindingResult bindingResult, ModelMap model) {
+	public String createUser(@ModelAttribute UserRequestDto createdUser, BindingResult bindingResult, ModelMap model) {
 		try {
 			userService.createUser(createdUser);
 			return "redirect:/users";

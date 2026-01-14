@@ -1,7 +1,11 @@
 package alt.portfolio.builder.entities;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -30,6 +34,23 @@ public class Profile {
 
 	@Column(length = 500, nullable = false)
 	private String description = "";
+
+	@Column(length = 255, nullable = true)
+	private String imageUrl;
+
+	@Column(nullable = false, updatable = false)
+	@CreationTimestamp
+	private LocalDateTime createdAt;
+
+	@Column(nullable = false)
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
+
+	@Column(length = 20, nullable = false)
+	private String status = "draft"; // draft, published, archived
+
+	@Column(nullable = false)
+	private boolean isDefault = false;
 
 	@ManyToOne(optional = true)
 	private Template template;

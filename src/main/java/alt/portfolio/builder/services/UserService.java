@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import alt.portfolio.builder.dtos.userRequestDto;
+import alt.portfolio.builder.dtos.UserRequestDto;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.repositories.UserRepositories;
 
@@ -23,7 +23,7 @@ public class UserService {
 		return userRepositories.findByArchiverFalse();
 	}
 
-	public User createUser(userRequestDto userRequest) {
+	public User createUser(UserRequestDto userRequest) {
 		// vérification : email déjà utilisé ?
 		userRepositories.findByEmail(userRequest.getEmail()).ifPresent(u -> {
 			throw new IllegalArgumentException("Email déjà utilisé");

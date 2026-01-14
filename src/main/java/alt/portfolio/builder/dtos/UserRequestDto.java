@@ -4,7 +4,7 @@ import alt.portfolio.builder.entities.User;
 import lombok.Data;
 
 @Data
-public class userRequestDto {
+public class UserRequestDto {
 	private String firstname;
 	private String lastname;
 	private String username;

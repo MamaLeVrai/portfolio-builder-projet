@@ -45,7 +45,7 @@ public class User implements UserDetails {
 	@OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Profile> profiles;
 
-	public void addProdile(Profile profile) {
+	public void addProfile(Profile profile) {
 		this.profiles.add(profile);
 		profile.setOwner(this);
 
