@@ -179,6 +179,9 @@ public class ProfileController {
 
 		model.addAttribute("profileUpdate", updateDto);
 		model.addAttribute("profile", profile);
+		model.addAttribute("statusIsDraft", "draft".equals(profile.getStatus()));
+		model.addAttribute("statusIsPublished", "published".equals(profile.getStatus()));
+		model.addAttribute("statusIsArchived", "archived".equals(profile.getStatus()));
 		return "/profiles/edit";
 	}
 
@@ -197,6 +200,9 @@ public class ProfileController {
 
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("profile", profile);
+			model.addAttribute("statusIsDraft", "draft".equals(updateDto.getStatus()));
+			model.addAttribute("statusIsPublished", "published".equals(updateDto.getStatus()));
+			model.addAttribute("statusIsArchived", "archived".equals(updateDto.getStatus()));
 			return "/profiles/edit";
 		}
 
@@ -207,6 +213,9 @@ public class ProfileController {
 		} catch (IllegalArgumentException e) {
 			model.addAttribute("error", e.getMessage());
 			model.addAttribute("profile", profile);
+			model.addAttribute("statusIsDraft", "draft".equals(updateDto.getStatus()));
+			model.addAttribute("statusIsPublished", "published".equals(updateDto.getStatus()));
+			model.addAttribute("statusIsArchived", "archived".equals(updateDto.getStatus()));
 			return "/profiles/edit";
 		}
 	}
