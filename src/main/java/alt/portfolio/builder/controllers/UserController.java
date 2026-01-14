@@ -18,9 +18,14 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import alt.portfolio.builder.dtos.UserRequestDto;
+import alt.portfolio.builder.dtos.UserUpdateDto;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.services.DbUserServices;
 import alt.portfolio.builder.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @RequestMapping("/users")
 @Controller
@@ -74,6 +79,76 @@ public class UserController {
 	@ResponseBody
 	public User createUser(@PathVariable String username, @PathVariable String password) {
 		return dbUserServices.createUser(username, password);
+	}
+
+	// US-004: Edit user profile
+	@GetMapping("/edit")
+	public String editProfile(ModelMap model) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+			return "redirect:/login";
+		}
+
+		User currentUser = (User) auth.getPrincipal();
+		UserUpdateDto updateDto = new UserUpdateDto();
+		updateDto.setFirstname(currentUser.getFirstname());
+		updateDto.setLastname(currentUser.getLastname());
+		updateDto.setEmail(currentUser.getEmail());
+
+		model.addAttribute("userUpdate", updateDto);
+		model.addAttribute("user", currentUser);
+		return "/users/edit";
+	}
+
+	@PostMapping("/edit")
+	public String updateProfile(@Valid @ModelAttribute("userUpdate") UserUpdateDto updateDto,
+			BindingResult bindingResult, ModelMap model, RedirectAttributes redirectAttributes) {
+		
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+			return "redirect:/login";
+		}
+
+		User currentUser = (User) auth.getPrincipal();
+
+		if (bindingResult.hasErrors()) {
+			model.addAttribute("user", currentUser);
+			return "/users/edit";
+		}
+
+		try {
+			userService.updateUser(currentUser.getId(), updateDto);
+			redirectAttributes.addFlashAttribute("successMessage", "Profil mis à jour avec succès !");
+			return "redirect:/users/edit";
+		} catch (IllegalArgumentException e) {
+			model.addAttribute("error", e.getMessage());
+			model.addAttribute("user", currentUser);
+			return "/users/edit";
+		}
+	}
+
+	// US-005: Delete account
+	@PostMapping("/delete-account")
+	public String deleteAccount(HttpServletRequest request, HttpServletResponse response,
+			RedirectAttributes redirectAttributes) {
+		
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !(auth.getPrincipal() instanceof User)) {
+			return "redirect:/login";
+		}
+
+		User currentUser = (User) auth.getPrincipal();
+		UUID userId = currentUser.getId();
+
+		// Delete the account
+		userService.deleteAccount(userId);
+
+		// Invalidate session
+		SecurityContextHolder.clearContext();
+		request.getSession().invalidate();
+
+		redirectAttributes.addFlashAttribute("successMessage", "Votre compte a été supprimé avec succès.");
+		return "redirect:/register";
 	}
 
 }

@@ -1,0 +1,63 @@
+{{ > /partials/header}}
+
+<div class="container">
+    <div class="card" style="max-width: 600px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Inscription</h2>
+        </div>
+        <div class="card-body">
+            {{#successMessage}}
+            <div class="alert alert-success">{{successMessage}}</div>
+            {{/successMessage}}
+            
+            {{#error}}
+            <div class="alert alert-danger">{{error}}</div>
+            {{/error}}
+            
+            <form method="post" action="/register">
+                {{#userRegister}}
+                <div class="form-group">
+                    <label class="form-label">Prénom *</label>
+                    <input type="text" placeholder="Prénom" name="firstname" value="{{firstname}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nom *</label>
+                    <input type="text" placeholder="Nom" name="lastname" value="{{lastname}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nom d'utilisateur *</label>
+                    <input type="text" placeholder="Nom d'utilisateur" name="username" value="{{username}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" placeholder="Email" name="email" value="{{email}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Mot de passe *</label>
+                    <input type="password" placeholder="Mot de passe (min. 6 caractères)" name="password" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Confirmer le mot de passe *</label>
+                    <input type="password" placeholder="Confirmer le mot de passe" name="confirmPassword" required minlength="6">
+                </div>
+                
+                {{#passwordError}}
+                <div class="error">{{passwordError}}</div>
+                {{/passwordError}}
+                
+                <div class="button-container">
+                    <button type="submit" class="btn btn-primary">S'inscrire</button>
+                    <a href="/login" class="btn btn-secondary">Déjà un compte ? Se connecter</a>
+                </div>
+                {{/userRegister}}
+            </form>
+        </div>
+    </div>
+</div>
+
+{{ > /partials/footer}}

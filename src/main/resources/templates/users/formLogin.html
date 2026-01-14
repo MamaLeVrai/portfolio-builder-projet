@@ -3,6 +3,15 @@
 <div class="container">
     <div class="card-login">
         <h2>Connexion</h2>
+        
+        {{#successMessage}}
+        <div class="alert alert-success">{{successMessage}}</div>
+        {{/successMessage}}
+        
+        {{#error}}
+        <div class="alert alert-danger">{{error}}</div>
+        {{/error}}
+        
         <form method="post" action="./login">
             <div class="form-group">
                 <input type="text" name="username" placeholder="E-mail ou nom d'utilisateur" required>
@@ -12,6 +21,10 @@
             </div>
             <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
         </form>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <p>Pas encore de compte ? <a href="/register">S'inscrire</a></p>
+        </div>
     </div>
 </div>
 

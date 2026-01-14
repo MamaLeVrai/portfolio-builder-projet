@@ -32,12 +32,14 @@ public class SecurityConfig {
 								PathPatternRequestMatcher.withDefaults().matcher("/css/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/js/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/styles/**"),
+								PathPatternRequestMatcher.withDefaults().matcher("/register"),
 								PathPatternRequestMatcher.withDefaults().matcher("/users/register/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/img/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/profiles/register/**"))
 						.permitAll().anyRequest().authenticated())
 				.csrf(AbstractHttpConfigurer::disable)
-				.formLogin((form) -> form.loginPage("/login").defaultSuccessUrl("/users", true).permitAll());
+				.formLogin((form) -> form.loginPage("/login").defaultSuccessUrl("/users", true).permitAll())
+				.logout((logout) -> logout.logoutUrl("/logout").logoutSuccessUrl("/login").permitAll());
 		return http.build();
 	}
 

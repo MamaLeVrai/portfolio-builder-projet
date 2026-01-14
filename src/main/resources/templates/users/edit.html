@@ -1,0 +1,73 @@
+{{ > /partials/header}}
+
+<div class="container">
+    <div class="card" style="max-width: 700px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Mon compte</h2>
+        </div>
+        <div class="card-body">
+            {{#successMessage}}
+            <div class="alert alert-success">{{successMessage}}</div>
+            {{/successMessage}}
+            
+            {{#error}}
+            <div class="alert alert-danger">{{error}}</div>
+            {{/error}}
+            
+            <h3>Informations personnelles</h3>
+            <form method="post" action="/users/edit">
+                {{#userUpdate}}
+                <div class="form-group">
+                    <label class="form-label">Prénom *</label>
+                    <input type="text" placeholder="Prénom" name="firstname" value="{{firstname}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nom *</label>
+                    <input type="text" placeholder="Nom" name="lastname" value="{{lastname}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" placeholder="Email" name="email" value="{{email}}" required>
+                </div>
+                
+                <hr style="margin: 30px 0;">
+                
+                <h3>Changer le mot de passe (optionnel)</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Mot de passe actuel</label>
+                    <input type="password" placeholder="Mot de passe actuel" name="currentPassword">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nouveau mot de passe</label>
+                    <input type="password" placeholder="Nouveau mot de passe (min. 6 caractères)" name="newPassword" minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Confirmer le nouveau mot de passe</label>
+                    <input type="password" placeholder="Confirmer le nouveau mot de passe" name="confirmNewPassword" minlength="6">
+                </div>
+                
+                <div class="button-container">
+                    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    <a href="/users" class="btn btn-secondary">Annuler</a>
+                </div>
+                {{/userUpdate}}
+            </form>
+            
+            <hr style="margin: 30px 0;">
+            
+            <h3 style="color: #dc3545;">Zone de danger</h3>
+            <p>La suppression de votre compte est irréversible. Tous vos profils seront également supprimés.</p>
+            
+            <form method="post" action="/users/delete-account" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.');">
+                <button type="submit" class="btn" style="background-color: #dc3545; color: white;">Supprimer mon compte</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{ > /partials/footer}}
