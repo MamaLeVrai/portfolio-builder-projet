@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
 public class ProfileCreateDto {
 	
@@ -19,8 +17,6 @@ public class ProfileCreateDto {
 	
 	@Size(max = 255, message = "L'URL de l'image ne doit pas dépasser 255 caractères")
 	private String imageUrl;
-	
-	private UUID ownerId;
 	
 	public Profile toProfile(Profile profile) {
 		profile.setName(name);
