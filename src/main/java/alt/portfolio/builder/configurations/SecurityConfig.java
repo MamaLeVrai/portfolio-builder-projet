@@ -31,6 +31,7 @@ public class SecurityConfig {
 						.requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/"),
 								PathPatternRequestMatcher.withDefaults().matcher("/css/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/js/**"),
+								PathPatternRequestMatcher.withDefaults().matcher("/styles/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/users/register/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/img/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/profiles/register/**"))
