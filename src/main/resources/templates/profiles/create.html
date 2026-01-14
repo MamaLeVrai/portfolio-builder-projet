@@ -1,0 +1,40 @@
+{{ > /partials/header}}
+
+<div class="container">
+    <div class="card" style="max-width: 600px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Créer un nouveau profil</h2>
+        </div>
+        <div class="card-body">
+            {{#error}}
+            <div class="alert alert-danger">{{error}}</div>
+            {{/error}}
+            
+            <form method="post" action="/profiles/new">
+                {{#profileCreate}}
+                <div class="form-group">
+                    <label class="form-label">Nom du profil *</label>
+                    <input type="text" placeholder="Nom du profil" name="name" value="{{name}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea placeholder="Description du profil" name="description" rows="4">{{description}}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">URL de l'image</label>
+                    <input type="text" placeholder="URL de l'image" name="imageUrl" value="{{imageUrl}}">
+                </div>
+                
+                <div class="button-container">
+                    <button type="submit" class="btn btn-primary">Créer le profil</button>
+                    <a href="/profiles/my-profiles" class="btn btn-secondary">Annuler</a>
+                </div>
+                {{/profileCreate}}
+            </form>
+        </div>
+    </div>
+</div>
+
+{{ > /partials/footer}}

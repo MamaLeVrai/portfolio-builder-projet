@@ -1,0 +1,78 @@
+{{ > /partials/header}}
+
+<div class="container">
+    <div class="card" style="max-width: 900px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Mes profils</h2>
+        </div>
+        <div class="card-body">
+            {{#successMessage}}
+            <div class="alert alert-success">{{successMessage}}</div>
+            {{/successMessage}}
+            
+            {{#error}}
+            <div class="alert alert-danger">{{error}}</div>
+            {{/error}}
+            
+            <div style="margin-bottom: 20px;">
+                <a href="/profiles/new" class="btn btn-primary">+ Créer un nouveau profil</a>
+            </div>
+            
+            {{#profiles}}
+            {{#.}}
+            <div class="profile-card" style="border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 10px 0;">
+                            {{name}}
+                            {{#isDefault}}
+                            <span style="background-color: #ffc107; color: #000; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-left: 10px;">PAR DÉFAUT</span>
+                            {{/isDefault}}
+                        </h3>
+                        <p style="color: #666; margin: 5px 0;">{{description}}</p>
+                        {{#imageUrl}}
+                        <p style="color: #999; font-size: 14px; margin: 5px 0;">Image: {{imageUrl}}</p>
+                        {{/imageUrl}}
+                        <p style="color: #999; font-size: 14px; margin: 5px 0;">
+                            Statut: <span style="text-transform: capitalize;">{{status}}</span>
+                        </p>
+                        <p style="color: #999; font-size: 12px; margin: 5px 0;">
+                            Créé le: {{createdAt}} | Modifié le: {{updatedAt}}
+                        </p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px; margin-left: 20px;">
+                        <a href="/profiles/{{id}}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 14px;">Voir</a>
+                        <a href="/profiles/{{id}}/edit" class="btn btn-primary" style="padding: 5px 10px; font-size: 14px;">Éditer</a>
+                        
+                        {{^isDefault}}
+                        <form method="post" action="/profiles/{{id}}/set-default" style="margin: 0;">
+                            <button type="submit" class="btn" style="padding: 5px 10px; font-size: 14px; background-color: #ffc107; color: #000; width: 100%;">Définir par défaut</button>
+                        </form>
+                        {{/isDefault}}
+                        
+                        <form method="post" action="/profiles/{{id}}/duplicate" style="margin: 0;">
+                            <button type="submit" class="btn btn-secondary" style="padding: 5px 10px; font-size: 14px; width: 100%;">Dupliquer</button>
+                        </form>
+                        
+                        <form method="post" action="/profiles/{{id}}/delete-confirmed" 
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce profil ?');" 
+                              style="margin: 0;">
+                            <button type="submit" class="btn" style="padding: 5px 10px; font-size: 14px; background-color: #dc3545; color: white; width: 100%;">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {{/.}}
+            {{/profiles}}
+            
+            {{^profiles}}
+            <div style="text-align: center; padding: 40px; color: #999;">
+                <p>Vous n'avez pas encore de profil.</p>
+                <a href="/profiles/new" class="btn btn-primary">Créer votre premier profil</a>
+            </div>
+            {{/profiles}}
+        </div>
+    </div>
+</div>
+
+{{ > /partials/footer}}

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import alt.portfolio.builder.entities.Profile;
+import alt.portfolio.builder.entities.User;
 
 @Repository
 public interface ProfileRepositories extends JpaRepository<Profile, UUID> {
@@ -21,4 +22,13 @@ public interface ProfileRepositories extends JpaRepository<Profile, UUID> {
 
 	// retourne les profils non archivés d'un utilisateur donné
 	List<Profile> findByOwnerIdAndArchivedFalse(UUID ownerId);
+
+	// retourne les profils d'un utilisateur triés par date de mise à jour (US-007)
+	List<Profile> findByOwnerOrderByUpdatedAtDesc(User owner);
+
+	// retourne les profils non archivés d'un utilisateur triés par date de mise à jour
+	List<Profile> findByOwnerAndArchivedFalseOrderByUpdatedAtDesc(User owner);
+
+	// trouver le profil par défaut d'un utilisateur
+	Optional<Profile> findByOwnerAndIsDefaultTrue(User owner);
 }

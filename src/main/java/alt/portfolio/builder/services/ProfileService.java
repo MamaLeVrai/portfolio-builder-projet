@@ -8,7 +8,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import alt.portfolio.builder.dtos.ProfileCreateDto;
 import alt.portfolio.builder.dtos.ProfileRequestDto;
+import alt.portfolio.builder.dtos.ProfileUpdateDto;
 import alt.portfolio.builder.entities.Profile;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.repositories.ProfileRepositories;
@@ -79,5 +81,88 @@ public class ProfileService {
 		Profile profile = getProfileById(id);
 		profile.setArchived(true);
 		profileRepositories.save(profile);
+	}
+
+	// US-006: Create profile with new DTO
+	public Profile createProfileNew(ProfileCreateDto createDto, User currentUser) {
+		if (currentUser == null) {
+			throw new IllegalArgumentException("Utilisateur non connecté");
+		}
+
+		Profile profile = createDto.toProfile(new Profile());
+		profile.setOwner(currentUser);
+		return profileRepositories.save(profile);
+	}
+
+	// US-007: Get profiles by user sorted by updated date
+	public List<Profile> getProfilesByUserSorted(User user) {
+		return profileRepositories.findByOwnerAndArchivedFalseOrderByUpdatedAtDesc(user);
+	}
+
+	// US-008: Update profile
+	public Profile updateProfile(UUID profileId, ProfileUpdateDto updateDto, User currentUser) {
+		Profile profile = getProfileById(profileId);
+
+		// Check ownership
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			throw new IllegalArgumentException("Vous n'êtes pas autorisé à modifier ce profil");
+		}
+
+		profile = updateDto.updateProfile(profile);
+		return profileRepositories.save(profile);
+	}
+
+	// US-009: Duplicate profile
+	public Profile duplicateProfile(UUID profileId, User currentUser) {
+		Profile original = getProfileById(profileId);
+
+		// Check ownership
+		if (!original.getOwner().getId().equals(currentUser.getId())) {
+			throw new IllegalArgumentException("Vous n'êtes pas autorisé à dupliquer ce profil");
+		}
+
+		Profile duplicate = new Profile();
+		duplicate.setName(original.getName() + " (Copie)");
+		duplicate.setDescription(original.getDescription());
+		duplicate.setImageUrl(original.getImageUrl());
+		duplicate.setStatus("draft");
+		duplicate.setDefault(false);
+		duplicate.setOwner(original.getOwner());
+
+		return profileRepositories.save(duplicate);
+	}
+
+	// US-010: Delete profile (with ownership check)
+	public void deleteProfile(UUID profileId, User currentUser) {
+		Profile profile = getProfileById(profileId);
+
+		// Check ownership
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			throw new IllegalArgumentException("Vous n'êtes pas autorisé à supprimer ce profil");
+		}
+
+		// Archive instead of physical delete
+		profile.setArchived(true);
+		profileRepositories.save(profile);
+	}
+
+	// US-011: Set default profile
+	public Profile setDefaultProfile(UUID profileId, User currentUser) {
+		Profile profile = getProfileById(profileId);
+
+		// Check ownership
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			throw new IllegalArgumentException("Vous n'êtes pas autorisé à modifier ce profil");
+		}
+
+		// Remove default status from other profiles
+		profileRepositories.findByOwnerAndIsDefaultTrue(currentUser).ifPresent(defaultProfile -> {
+			defaultProfile.setDefault(false);
+			profileRepositories.save(defaultProfile);
+		});
+
+		// Set this profile as default
+		profile.setDefault(true);
+		return profileRepositories.save(profile);
 	}
 }
