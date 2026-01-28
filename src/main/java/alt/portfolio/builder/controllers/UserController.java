@@ -2,6 +2,8 @@ package alt.portfolio.builder.controllers;
 
 import java.util.UUID;
 
+import alt.portfolio.builder.exceptions.EntityNotFoundException;
+import alt.portfolio.builder.exceptions.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -90,7 +92,7 @@ public class UserController {
 	 * US-005: Supprime le compte utilisateur
 	 */
 	@PostMapping("/delete-account")
-	public String deleteAccount(HttpServletRequest request, RedirectAttributes redirectAttributes) {
+	public String deleteAccount(HttpServletRequest request, RedirectAttributes redirectAttributes) throws EntityNotFoundException {
 		User currentUser = AuthUtils.getCurrentUser();
 		if (currentUser == null) {
 			return "redirect:/login";
@@ -111,7 +113,7 @@ public class UserController {
 	 * Affiche les détails d'un utilisateur (admin ou propriétaire)
 	 */
 	@GetMapping("/{id}")
-	public String show(@PathVariable UUID id, ModelMap model) {
+	public String show(@PathVariable UUID id, ModelMap model) throws EntityNotFoundException {
 		if (!AuthUtils.isOwnerOrAdmin(id)) {
 			return "redirect:/";
 		}

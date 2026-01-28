@@ -1,0 +1,15 @@
+{{ >partials/header }}
+
+<div class="ui icon error message">
+    <i class="ui ban icon"></i>
+    <div class="content">
+        <div class="header">Accès non autorisé</div>
+        {{#activeUser}}
+            <h4>{{firstname}} {{lastname}}</h4>
+        {{/activeUser}}
+        <p>{{message}}</p>
+        <a href="/" class="ui button primary">Retour à l'accueil</a>
+    </div>
+</div>
+
+{{ >partials/footer}}

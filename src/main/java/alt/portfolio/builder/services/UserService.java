@@ -3,6 +3,7 @@ package alt.portfolio.builder.services;
 import java.util.List;
 import java.util.UUID;
 
+import alt.portfolio.builder.exceptions.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -118,7 +119,7 @@ public class UserService {
 	/**
 	 * US-005: Supprime le compte d'un utilisateur
 	 */
-	public void deleteAccount(UUID userId) {
+	public void deleteAccount(UUID userId) throws EntityNotFoundException {
 		User user = getUserById(userId);
 		userRepositories.delete(user);
 	}
@@ -126,7 +127,10 @@ public class UserService {
 	/**
 	 * Supprime un utilisateur (admin)
 	 */
-	public void deleteUser(UUID userId) {
+	public void deleteUser(UUID userId) throws EntityNotFoundException {
+		if (!userRepositories.existsById(userId)) {
+			throw new EntityNotFoundException("Utilisateur introuvable: " + userId);
+		}
 		userRepositories.deleteById(userId);
 	}
 }

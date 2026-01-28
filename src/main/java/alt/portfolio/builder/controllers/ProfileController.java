@@ -3,6 +3,9 @@ package alt.portfolio.builder.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import alt.portfolio.builder.exceptions.EntityNotFoundException;
+import alt.portfolio.builder.exceptions.UnauthorizedException;
+import alt.portfolio.builder.exceptions.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -196,19 +199,14 @@ public class ProfileController {
 	 * US-011: Définit un profil comme profil par défaut
 	 */
 	@PostMapping("/{id}/set-default")
-	public String setDefaultProfile(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+	public String setDefaultProfile(@PathVariable UUID id, RedirectAttributes redirectAttributes) throws EntityNotFoundException, UnauthorizedException {
 		User currentUser = AuthUtils.getCurrentUser();
 		if (currentUser == null) {
 			return "redirect:/login";
 		}
 
-
-		try {
-			profileService.setDefaultProfile(id, currentUser);
-			redirectAttributes.addFlashAttribute("successMessage", "Profil défini comme profil par défaut !");
-		} catch (IllegalArgumentException e) {
-			redirectAttributes.addFlashAttribute("error", e.getMessage());
-		}
+		profileService.setDefaultProfile(id, currentUser);
+		redirectAttributes.addFlashAttribute("successMessage", "Profil défini comme profil par défaut !");
 
 		return "redirect:/profiles/my-profiles";
 	}

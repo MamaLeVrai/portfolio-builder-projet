@@ -1,5 +1,6 @@
 package alt.portfolio.builder.controllers;
 
+import alt.portfolio.builder.exceptions.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import alt.portfolio.builder.dtos.UserRegisterDto;
-import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,7 +32,7 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public String register(@Valid @ModelAttribute("userRegister") UserRegisterDto userRegisterDto,
-			BindingResult bindingResult, ModelMap model, RedirectAttributes redirectAttributes) {
+			BindingResult bindingResult, ModelMap model, RedirectAttributes redirectAttributes) throws ValidationException {
 
 		// Check validation errors
 		if (bindingResult.hasErrors()) {
@@ -45,15 +45,10 @@ public class AuthController {
 			return "/users/register";
 		}
 
-		try {
-			userService.registerUser(userRegisterDto);
-			redirectAttributes.addFlashAttribute("successMessage",
-					"Inscription réussie ! Vous pouvez maintenant vous connecter.");
-			return "redirect:/login";
-		} catch (IllegalArgumentException e) {
-			model.addAttribute("error", e.getMessage());
-			return "/users/register";
-		}
+		userService.registerUser(userRegisterDto);
+		redirectAttributes.addFlashAttribute("successMessage",
+				"Inscription réussie ! Vous pouvez maintenant vous connecter.");
+		return "redirect:/login";
 	}
 
 	@GetMapping("/login")

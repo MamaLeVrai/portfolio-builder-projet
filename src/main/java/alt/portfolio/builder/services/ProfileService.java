@@ -3,6 +3,9 @@ package alt.portfolio.builder.services;
 import java.util.List;
 import java.util.UUID;
 
+import alt.portfolio.builder.exceptions.EntityNotFoundException;
+import alt.portfolio.builder.exceptions.UnauthorizedException;
+import alt.portfolio.builder.exceptions.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -147,12 +150,12 @@ public class ProfileService {
 	}
 
 	// US-011: Set default profile
-	public Profile setDefaultProfile(UUID profileId, User currentUser) {
+	public Profile setDefaultProfile(UUID profileId, User currentUser) throws EntityNotFoundException, UnauthorizedException {
 		Profile profile = getProfileById(profileId);
 
 		// Check ownership
 		if (!profile.getOwner().getId().equals(currentUser.getId())) {
-			throw new IllegalArgumentException("Vous n'êtes pas autorisé à modifier ce profil");
+			throw new UnauthorizedException("Vous n'êtes pas autorisé à modifier ce profil");
 		}
 
 		// Remove default status from other profiles

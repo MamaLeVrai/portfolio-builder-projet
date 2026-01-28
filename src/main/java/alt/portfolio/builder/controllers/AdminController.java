@@ -2,6 +2,8 @@ package alt.portfolio.builder.controllers;
 
 import java.util.UUID;
 
+import alt.portfolio.builder.exceptions.EntityNotFoundException;
+import alt.portfolio.builder.exceptions.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -45,7 +47,7 @@ public class AdminController {
 	 * Affiche les détails d'un utilisateur
 	 */
 	@GetMapping("/users/{id}")
-	public String viewUser(@PathVariable UUID id, ModelMap model) {
+	public String viewUser(@PathVariable UUID id, ModelMap model) throws EntityNotFoundException {
 		if (!AuthUtils.isAdmin()) {
 			return "redirect:/";
 		}
@@ -58,7 +60,7 @@ public class AdminController {
 	 * Affiche le formulaire d'édition d'un utilisateur
 	 */
 	@GetMapping("/users/{id}/edit")
-	public String editUser(@PathVariable UUID id, ModelMap model) {
+	public String editUser(@PathVariable UUID id, ModelMap model) throws EntityNotFoundException {
 		if (!AuthUtils.isAdmin()) {
 			return "redirect:/";
 		}
@@ -75,50 +77,40 @@ public class AdminController {
 	 */
 	@PostMapping("/users/{id}/edit")
 	public String updateUser(@PathVariable UUID id, User userUpdate,
-			RedirectAttributes redirectAttributes) {
+			RedirectAttributes redirectAttributes) throws EntityNotFoundException, ValidationException {
 		if (!AuthUtils.isAdmin()) {
 			return "redirect:/";
 		}
 
-		try {
-			User existingUser = userService.getUserById(id);
-			existingUser.setFirstname(userUpdate.getFirstname());
-			existingUser.setLastname(userUpdate.getLastname());
-			existingUser.setEmail(userUpdate.getEmail());
-			existingUser.setRole(userUpdate.getRole());
-			existingUser.setArchiver(userUpdate.isArchiver());
+		User existingUser = userService.getUserById(id);
+		existingUser.setFirstname(userUpdate.getFirstname());
+		existingUser.setLastname(userUpdate.getLastname());
+		existingUser.setEmail(userUpdate.getEmail());
+		existingUser.setRole(userUpdate.getRole());
+		existingUser.setArchiver(userUpdate.isArchiver());
 
-			userService.updateUser(existingUser);
-			redirectAttributes.addFlashAttribute("successMessage", "Utilisateur mis à jour avec succès !");
-			return "redirect:/admin/users";
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
-			return "redirect:/admin/users/" + id + "/edit";
-		}
+		userService.updateUser(existingUser);
+		redirectAttributes.addFlashAttribute("successMessage", "Utilisateur mis à jour avec succès !");
+		return "redirect:/admin/users";
 	}
 
 	/**
 	 * Supprime un utilisateur
 	 */
 	@PostMapping("/users/{id}/delete")
-	public String deleteUser(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+	public String deleteUser(@PathVariable UUID id, RedirectAttributes redirectAttributes) throws EntityNotFoundException {
 		if (!AuthUtils.isAdmin()) {
 			return "redirect:/";
 		}
 
 		User currentUser = AuthUtils.getCurrentUser();
-		if (currentUser.getId().equals(id)) {
+		if (currentUser != null && currentUser.getId().equals(id)) {
 			redirectAttributes.addFlashAttribute("error", "Vous ne pouvez pas supprimer votre propre compte !");
 			return "redirect:/admin/users";
 		}
 
-		try {
-			userService.deleteUser(id);
-			redirectAttributes.addFlashAttribute("successMessage", "Utilisateur supprimé avec succès !");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
-		}
-
+		userService.deleteUser(id);
+		redirectAttributes.addFlashAttribute("successMessage", "Utilisateur supprimé avec succès !");
 		return "redirect:/admin/users";
 	}
 
@@ -126,7 +118,7 @@ public class AdminController {
 	 * Affiche les profils d'un utilisateur
 	 */
 	@GetMapping("/users/{id}/profiles")
-	public String viewUserProfiles(@PathVariable UUID id, ModelMap model) {
+	public String viewUserProfiles(@PathVariable UUID id, ModelMap model) throws EntityNotFoundException {
 		if (!AuthUtils.isAdmin()) {
 			return "redirect:/";
 		}
@@ -141,22 +133,17 @@ public class AdminController {
 	 * Archive/Désarchive un utilisateur
 	 */
 	@PostMapping("/users/{id}/toggle-archive")
-	public String toggleArchiveUser(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+	public String toggleArchiveUser(@PathVariable UUID id, RedirectAttributes redirectAttributes) throws EntityNotFoundException, ValidationException {
 		if (!AuthUtils.isAdmin()) {
 			return "redirect:/";
 		}
 
-		try {
-			User user = userService.getUserById(id);
-			user.setArchiver(!user.isArchiver());
-			userService.updateUser(user);
+		User user = userService.getUserById(id);
+		user.setArchiver(!user.isArchiver());
+		userService.updateUser(user);
 
-			String message = user.isArchiver() ? "Utilisateur archivé" : "Utilisateur désarchivé";
-			redirectAttributes.addFlashAttribute("successMessage", message + " avec succès !");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
-		}
-
+		String message = user.isArchiver() ? "Utilisateur archivé" : "Utilisateur désarchivé";
+		redirectAttributes.addFlashAttribute("successMessage", message + " avec succès !");
 		return "redirect:/admin/users";
 	}
 }
