@@ -21,7 +21,10 @@ public class Rubric {
 	// order_ BYTE dans le MLD
 	@Column(name = "order_", nullable = false)
 	private Byte order;
-	
+
+	@Column(nullable = false)
+	private boolean visible = true;
+
 	// #Id_Category
 	@ManyToOne(optional = false)
 	private Category category;
