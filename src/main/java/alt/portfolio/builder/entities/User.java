@@ -49,11 +49,11 @@ public class User implements UserDetails {
 
 	/** Rôle de l'utilisateur (USER, ADMIN, etc.) */
 	@Column(length = 20)
-	private String role;
+	private String role = "USER";
 
-	/** Liste des profils appartenant à cet utilisateur */
+	/** Liste des profils appartenant  cet utilisateur */
 	@OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Profile> profiles;
+	private List<Profile> profiles = new ArrayList<>();
 
 	/**
 	 * Ajoute un profil à cet utilisateur et établit la relation bidirectionnelle
@@ -63,11 +63,14 @@ public class User implements UserDetails {
 		profile.setOwner(this);
 	}
 
-	// ========== Implémentation de UserDetails pour Spring Security ==========
+	// ========== Implmentation de UserDetails pour Spring Security ==========
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return new ArrayList<>();
+			if (this.role == null) {
+					return new ArrayList<>();
+			}
+			return java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + this.role));
 	}
 
 	@Override

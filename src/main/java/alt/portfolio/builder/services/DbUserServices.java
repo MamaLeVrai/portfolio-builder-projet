@@ -29,7 +29,10 @@ public class DbUserServices implements UserDetailsService {
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		Optional<User> optUser = userRepositories.findByUsername(username);
+		Optional<User> optUser = userRepositories.findByEmail(username);
+		if (optUser.isEmpty()) {
+			optUser = userRepositories.findByUsername(username);
+		}
 		return optUser.orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable: " + username));
 	}
 
