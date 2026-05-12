@@ -14,14 +14,17 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import alt.portfolio.builder.dtos.ProfileCreateDto;
 import alt.portfolio.builder.dtos.ProfileUpdateDto;
 import alt.portfolio.builder.entities.Profile;
+import alt.portfolio.builder.entities.ProfileView;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.services.ProfileService;
 import alt.portfolio.builder.utils.AuthUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 /**
@@ -209,5 +212,114 @@ public class ProfileController {
 		redirectAttributes.addFlashAttribute("successMessage", "Profil défini comme profil par défaut !");
 
 		return "redirect:/profiles/my-profiles";
+	}
+
+	/**
+	 * US-021 / US-026: Prévisualiser un profil (CV ou Portfolio)
+	 */
+	@GetMapping("/{id}/preview")
+	public String previewProfile(@PathVariable UUID id,
+			@RequestParam(defaultValue = "cv") String mode,
+			ModelMap model) {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
+			return "redirect:/login";
+		}
+
+		Profile profile = profileService.getProfileById(id);
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			return "redirect:/profiles/my-profiles";
+		}
+
+		model.addAttribute("profile", profile);
+		model.addAttribute("mode", mode);
+		model.addAttribute("isCvMode", "cv".equals(mode));
+		model.addAttribute("isPortfolioMode", "portfolio".equals(mode));
+		model.addAttribute("owner", profile.getOwner());
+		return "/profiles/preview";
+	}
+
+	/**
+	 * US-022: Publier un profil en tant que CV et/ou Portfolio
+	 */
+	@PostMapping("/{id}/publish")
+	public String publishProfile(@PathVariable UUID id,
+			@RequestParam(required = false) boolean publishCv,
+			@RequestParam(required = false) boolean publishPortfolio,
+			RedirectAttributes redirectAttributes) throws UnauthorizedException {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
+			return "redirect:/login";
+		}
+
+		try {
+			profileService.publishProfile(id, publishCv, publishPortfolio, currentUser);
+			if (publishCv || publishPortfolio) {
+				redirectAttributes.addFlashAttribute("successMessage", "Profil publié avec succès !");
+			} else {
+				redirectAttributes.addFlashAttribute("successMessage", "Profil dépublié avec succès !");
+			}
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
+		}
+
+		return "redirect:/profiles/" + id + "/publish";
+	}
+
+	/**
+	 * US-022 / US-027: Page de publication avec URLs publiques
+	 */
+	@GetMapping("/{id}/publish")
+	public String showPublishPage(@PathVariable UUID id, ModelMap model, HttpServletRequest request) {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
+			return "redirect:/login";
+		}
+
+		Profile profile = profileService.getProfileById(id);
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			return "redirect:/profiles/my-profiles";
+		}
+
+		String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+		String cvUrl = baseUrl + "/public/cv/" + currentUser.getUsername();
+		String portfolioUrl = baseUrl + "/public/portfolio/" + currentUser.getUsername();
+
+		model.addAttribute("profile", profile);
+		model.addAttribute("cvUrl", cvUrl);
+		model.addAttribute("portfolioUrl", portfolioUrl);
+		model.addAttribute("isPublishedAsCv", profile.isPublishedAsCv());
+		model.addAttribute("isPublishedAsPortfolio", profile.isPublishedAsPortfolio());
+		model.addAttribute("isPublished", profile.isPublishedAsCv() || profile.isPublishedAsPortfolio());
+		return "/profiles/publish";
+	}
+
+	/**
+	 * US-023: Statistiques de vues d'un profil
+	 */
+	@GetMapping("/{id}/stats")
+	public String profileStats(@PathVariable UUID id, ModelMap model) {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) {
+			return "redirect:/login";
+		}
+
+		Profile profile = profileService.getProfileById(id);
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			return "redirect:/profiles/my-profiles";
+		}
+
+		long totalViews = profileService.getTotalViews(profile);
+		long cvViews = profileService.getCvViews(profile);
+		long portfolioViews = profileService.getPortfolioViews(profile);
+		List<ProfileView> recentViews = profileService.getRecentViews(profile);
+
+		model.addAttribute("profile", profile);
+		model.addAttribute("totalViews", totalViews);
+		model.addAttribute("cvViews", cvViews);
+		model.addAttribute("portfolioViews", portfolioViews);
+		model.addAttribute("recentViews", recentViews);
+		model.addAttribute("hasViews", totalViews > 0);
+		return "/profiles/stats";
 	}
 }

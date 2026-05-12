@@ -1,0 +1,106 @@
+{{ > /partials/header}}
+
+<div class="container">
+    <div class="card" style="max-width: 900px; margin: 50px auto;">
+        <div class="card-header">
+            <h2 class="card-title">Publication du profil : {{profile.name}}</h2>
+        </div>
+        <div class="card-body">
+            {{#successMessage}}
+            <div class="alert alert-success">{{successMessage}}</div>
+            {{/successMessage}}
+
+            {{#error}}
+            <div class="alert alert-danger">{{error}}</div>
+            {{/error}}
+
+            <!-- US-022: Formulaire de publication -->
+            <div style="margin-bottom: 30px;">
+                <h3>Options de publication</h3>
+                <form method="post" action="/profiles/{{profile.id}}/publish">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="checkbox" name="publishCv" value="true" {{#isPublishedAsCv}}checked{{/isPublishedAsCv}}>
+                            <div>
+                                <strong>Publier en tant que CV</strong>
+                                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Format structuré et formel, idéal pour les recruteurs</p>
+                            </div>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="checkbox" name="publishPortfolio" value="true" {{#isPublishedAsPortfolio}}checked{{/isPublishedAsPortfolio}}>
+                            <div>
+                                <strong>Publier en tant que Portfolio</strong>
+                                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Format visuel et créatif, idéal pour présenter vos projets</p>
+                            </div>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 30px;">
+                        {{#isPublished}}Mettre à jour la publication{{/isPublished}}
+                        {{^isPublished}}Publier{{/isPublished}}
+                    </button>
+                </form>
+            </div>
+
+            <!-- US-027: URLs publiques -->
+            {{#isPublished}}
+            <div style="margin-bottom: 30px;">
+                <h3>Vos URLs publiques</h3>
+                {{#isPublishedAsCv}}
+                <div style="padding: 15px; background: #e8f5e9; border-radius: 5px; margin-bottom: 10px;">
+                    <strong>CV :</strong>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="text" value="{{cvUrl}}" id="cvUrlInput" readonly
+                               style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">
+                        <button onclick="copyUrl('cvUrlInput')" class="btn btn-secondary" style="padding: 8px 15px;">Copier</button>
+                        <a href="{{cvUrl}}" target="_blank" class="btn btn-primary" style="padding: 8px 15px; text-decoration: none;">Ouvrir</a>
+                    </div>
+                </div>
+                {{/isPublishedAsCv}}
+
+                {{#isPublishedAsPortfolio}}
+                <div style="padding: 15px; background: #e8f5e9; border-radius: 5px; margin-bottom: 10px;">
+                    <strong>Portfolio :</strong>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <input type="text" value="{{portfolioUrl}}" id="portfolioUrlInput" readonly
+                               style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">
+                        <button onclick="copyUrl('portfolioUrlInput')" class="btn btn-secondary" style="padding: 8px 15px;">Copier</button>
+                        <a href="{{portfolioUrl}}" target="_blank" class="btn btn-primary" style="padding: 8px 15px; text-decoration: none;">Ouvrir</a>
+                    </div>
+                </div>
+                {{/isPublishedAsPortfolio}}
+            </div>
+            {{/isPublished}}
+
+            <!-- Aperçu rapide -->
+            <div style="margin-bottom: 20px;">
+                <h3>Aperçu</h3>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/profiles/{{profile.id}}/preview?mode=cv" class="btn btn-secondary" style="text-decoration: none; padding: 8px 16px;">Prévisualiser en CV</a>
+                    <a href="/profiles/{{profile.id}}/preview?mode=portfolio" class="btn btn-secondary" style="text-decoration: none; padding: 8px 16px;">Prévisualiser en Portfolio</a>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div style="margin-bottom: 20px;">
+                <a href="/profiles/{{profile.id}}/stats" class="btn btn-secondary" style="text-decoration: none; padding: 8px 16px;">Voir les statistiques</a>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a href="/profiles/my-profiles" class="btn btn-secondary" style="text-decoration: none;">Retour aux profils</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyUrl(inputId) {
+    var input = document.getElementById(inputId);
+    input.select();
+    document.execCommand('copy');
+    alert('URL copiée !');
+}
+</script>
+
+{{ > /partials/footer}}

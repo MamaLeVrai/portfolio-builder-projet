@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Portfolio - {{owner.firstname}} {{owner.lastname}}</title>
+    <link rel="stylesheet" href="/styles/main.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+        .portfolio-hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 20px; text-align: center; color: white; }
+        .portfolio-hero h1 { margin: 0; font-size: 36px; }
+        .portfolio-hero p { color: rgba(255,255,255,0.8); font-size: 18px; margin: 10px 0 0 0; }
+        .portfolio-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; margin-bottom: 20px; }
+        .portfolio-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .portfolio-description { text-align: center; max-width: 700px; margin: 0 auto 40px auto; font-size: 18px; color: #555; line-height: 1.6; }
+        .portfolio-section { margin-bottom: 40px; }
+        .portfolio-section h2 { text-align: center; color: #667eea; font-size: 24px; margin-bottom: 25px; }
+        .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .portfolio-card { background: white; border-radius: 10px; padding: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; }
+        .portfolio-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .portfolio-card h4 { margin: 0 0 10px 0; color: #333; font-size: 18px; }
+        .portfolio-card p { color: #666; margin: 0 0 10px 0; line-height: 1.5; }
+        .portfolio-card .meta { color: #999; font-size: 13px; }
+        .portfolio-footer { text-align: center; padding: 30px; color: #aaa; font-size: 12px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="portfolio-hero">
+        {{#profile.imageUrl}}
+        <img src="{{profile.imageUrl}}" alt="Photo" class="portfolio-photo">
+        {{/profile.imageUrl}}
+        <h1>{{owner.firstname}} {{owner.lastname}}</h1>
+        <p>{{profile.name}}</p>
+    </div>
+
+    <div class="portfolio-container">
+        {{#profile.description}}
+        <div class="portfolio-description">
+            <p>{{profile.description}}</p>
+        </div>
+        {{/profile.description}}
+
+        {{#profile.rubrics}}
+        {{#visible}}
+        <div class="portfolio-section">
+            <h2>{{name}}</h2>
+            <div class="portfolio-grid">
+                {{#items}}
+                <div class="portfolio-card">
+                    <h4>{{title}}</h4>
+                    {{#description}}
+                    <p>{{description}}</p>
+                    {{/description}}
+                    {{#startDate}}
+                    <p class="meta">{{startDate}} {{#endDate}}- {{endDate}}{{/endDate}}</p>
+                    {{/startDate}}
+                    {{#location}}
+                    <p class="meta">{{name}}, {{address}}</p>
+                    {{/location}}
+                </div>
+                {{/items}}
+            </div>
+        </div>
+        {{/visible}}
+        {{/profile.rubrics}}
+    </div>
+
+    <div class="portfolio-footer">
+        Généré avec Portfolio Builder
+    </div>
+</body>
+</html>

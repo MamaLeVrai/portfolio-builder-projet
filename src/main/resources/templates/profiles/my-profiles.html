@@ -37,6 +37,12 @@
                         {{/imageUrl}}
                         <p style="color: #999; font-size: 14px; margin: 5px 0;">
                             Statut: <span style="text-transform: capitalize;">{{status}}</span>
+                            {{#publishedAsCv}}
+                            <span style="background-color: #17a2b8; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-left: 5px;">CV</span>
+                            {{/publishedAsCv}}
+                            {{#publishedAsPortfolio}}
+                            <span style="background-color: #6f42c1; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-left: 5px;">Portfolio</span>
+                            {{/publishedAsPortfolio}}
                         </p>
                         <p style="color: #999; font-size: 12px; margin: 5px 0;">
                             Créé le: {{createdAt}} | Modifié le: {{updatedAt}}
@@ -45,19 +51,22 @@
                     <div style="display: flex; flex-direction: column; gap: 5px; margin-left: 20px;">
                         <a href="/profiles/{{id}}" class="btn btn-secondary" style="padding: 5px 10px; font-size: 14px;">Voir</a>
                         <a href="/profiles/{{id}}/edit" class="btn btn-primary" style="padding: 5px 10px; font-size: 14px;">Éditer</a>
-                        
+                        <a href="/profiles/{{id}}/preview" class="btn" style="padding: 5px 10px; font-size: 14px; background-color: #17a2b8; color: white; text-decoration: none; width: 100%; text-align: center;">Prévisualiser</a>
+                        <a href="/profiles/{{id}}/publish" class="btn" style="padding: 5px 10px; font-size: 14px; background-color: #28a745; color: white; text-decoration: none; width: 100%; text-align: center;">Publier</a>
+                        <a href="/profiles/{{id}}/stats" class="btn" style="padding: 5px 10px; font-size: 14px; background-color: #6f42c1; color: white; text-decoration: none; width: 100%; text-align: center;">Statistiques</a>
+
                         {{^isDefault}}
                         <form method="post" action="/profiles/{{id}}/set-default" style="margin: 0;">
                             <button type="submit" class="btn" style="padding: 5px 10px; font-size: 14px; background-color: #ffc107; color: #000; width: 100%;">Définir par défaut</button>
                         </form>
                         {{/isDefault}}
-                        
+
                         <form method="post" action="/profiles/{{id}}/duplicate" style="margin: 0;">
                             <button type="submit" class="btn btn-secondary" style="padding: 5px 10px; font-size: 14px; width: 100%;">Dupliquer</button>
                         </form>
-                        
-                        <form method="post" action="/profiles/{{id}}/delete-confirmed" 
-                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce profil ?');" 
+
+                        <form method="post" action="/profiles/{{id}}/delete-confirmed"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce profil ?');"
                               style="margin: 0;">
                             <button type="submit" class="btn" style="padding: 5px 10px; font-size: 14px; background-color: #dc3545; color: white; width: 100%;">Supprimer</button>
                         </form>

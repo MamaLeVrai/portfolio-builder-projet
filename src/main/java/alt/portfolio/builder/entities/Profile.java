@@ -52,6 +52,15 @@ public class Profile {
 	@Column(nullable = false)
 	private boolean isDefault = false;
 
+	@Column(nullable = false)
+	private boolean publishedAsCv = false;
+
+	@Column(nullable = false)
+	private boolean publishedAsPortfolio = false;
+
+	@Column(nullable = false)
+	private long viewCount = 0;
+
 	@ManyToOne(optional = true)
 	private Template template;
 

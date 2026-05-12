@@ -35,7 +35,8 @@ public class SecurityConfig {
 								PathPatternRequestMatcher.withDefaults().matcher("/register"),
 								PathPatternRequestMatcher.withDefaults().matcher("/users/register/**"),
 								PathPatternRequestMatcher.withDefaults().matcher("/img/**"),
-								PathPatternRequestMatcher.withDefaults().matcher("/profiles/register/**"))
+								PathPatternRequestMatcher.withDefaults().matcher("/profiles/register/**"),
+								PathPatternRequestMatcher.withDefaults().matcher("/public/**"))
 						.permitAll().anyRequest().authenticated())
 				.csrf(AbstractHttpConfigurer::disable)
 				.formLogin((form) -> form.loginPage("/login").defaultSuccessUrl("/profiles/my-profiles", true).permitAll())

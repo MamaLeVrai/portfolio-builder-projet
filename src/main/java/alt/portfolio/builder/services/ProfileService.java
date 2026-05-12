@@ -16,7 +16,9 @@ import alt.portfolio.builder.dtos.ProfileRequestDto;
 import alt.portfolio.builder.dtos.ProfileUpdateDto;
 import alt.portfolio.builder.entities.Profile;
 import alt.portfolio.builder.entities.User;
+import alt.portfolio.builder.entities.ProfileView;
 import alt.portfolio.builder.repositories.ProfileRepositories;
+import alt.portfolio.builder.repositories.ProfileViewRepositories;
 import alt.portfolio.builder.repositories.UserRepositories;
 
 @Service
@@ -27,6 +29,9 @@ public class ProfileService {
 
 	@Autowired
 	private UserRepositories userRepositories;
+
+	@Autowired
+	private ProfileViewRepositories profileViewRepositories;
 
 	public List<Profile> getProfiles() {
 		return profileRepositories.findByArchivedFalse();
@@ -167,5 +172,75 @@ public class ProfileService {
 		// Set this profile as default
 		profile.setDefault(true);
 		return profileRepositories.save(profile);
+	}
+
+	// US-022: Publish profile as CV and/or Portfolio
+	public Profile publishProfile(UUID profileId, boolean asCv, boolean asPortfolio, User currentUser) throws UnauthorizedException {
+		Profile profile = getProfileById(profileId);
+
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			throw new UnauthorizedException("Vous n'êtes pas autorisé à publier ce profil");
+		}
+
+		profile.setPublishedAsCv(asCv);
+		profile.setPublishedAsPortfolio(asPortfolio);
+
+		if (asCv || asPortfolio) {
+			profile.setStatus("published");
+		} else {
+			profile.setStatus("draft");
+		}
+
+		return profileRepositories.save(profile);
+	}
+
+	// US-022: Unpublish profile
+	public Profile unpublishProfile(UUID profileId, User currentUser) throws UnauthorizedException {
+		return publishProfile(profileId, false, false, currentUser);
+	}
+
+	// US-027: Get public CV profile for a user by username
+	public Profile getPublicCvProfile(String username) throws EntityNotFoundException {
+		User owner = userRepositories.findByUsername(username)
+				.orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable: " + username));
+		return profileRepositories.findByOwnerAndIsDefaultTrueAndPublishedAsCvTrue(owner)
+				.orElseThrow(() -> new EntityNotFoundException("Aucun CV publié pour cet utilisateur"));
+	}
+
+	// US-027: Get public Portfolio profile for a user by username
+	public Profile getPublicPortfolioProfile(String username) throws EntityNotFoundException {
+		User owner = userRepositories.findByUsername(username)
+				.orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable: " + username));
+		return profileRepositories.findByOwnerAndIsDefaultTrueAndPublishedAsPortfolioTrue(owner)
+				.orElseThrow(() -> new EntityNotFoundException("Aucun portfolio publié pour cet utilisateur"));
+	}
+
+	// US-023: Record a profile view
+	public void recordView(Profile profile, String viewType, String visitorIp) {
+		ProfileView view = new ProfileView();
+		view.setProfile(profile);
+		view.setViewType(viewType);
+		view.setVisitorIp(visitorIp);
+		profileViewRepositories.save(view);
+
+		profile.setViewCount(profile.getViewCount() + 1);
+		profileRepositories.save(profile);
+	}
+
+	// US-023: Get view stats for a profile
+	public long getTotalViews(Profile profile) {
+		return profileViewRepositories.countByProfile(profile);
+	}
+
+	public long getCvViews(Profile profile) {
+		return profileViewRepositories.countByProfileAndViewType(profile, "cv");
+	}
+
+	public long getPortfolioViews(Profile profile) {
+		return profileViewRepositories.countByProfileAndViewType(profile, "portfolio");
+	}
+
+	public List<ProfileView> getRecentViews(Profile profile) {
+		return profileViewRepositories.findByProfileOrderByViewedAtDesc(profile);
 	}
 }

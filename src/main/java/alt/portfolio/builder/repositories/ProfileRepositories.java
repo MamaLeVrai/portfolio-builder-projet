@@ -31,4 +31,10 @@ public interface ProfileRepositories extends JpaRepository<Profile, UUID> {
 
 	// trouver le profil par défaut d'un utilisateur
 	Optional<Profile> findByOwnerAndIsDefaultTrue(User owner);
+
+	// trouver le profil par défaut publié en CV d'un utilisateur
+	Optional<Profile> findByOwnerAndIsDefaultTrueAndPublishedAsCvTrue(User owner);
+
+	// trouver le profil par défaut publié en portfolio d'un utilisateur
+	Optional<Profile> findByOwnerAndIsDefaultTrueAndPublishedAsPortfolioTrue(User owner);
 }
