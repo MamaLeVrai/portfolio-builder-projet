@@ -22,6 +22,15 @@ import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.services.ProfileService;
 import alt.portfolio.builder.services.UserService;
 
+/**
+ * Contrôleur qui gère la liste des profils d'un utilisateur spécifique.
+ *
+ * Toutes les routes commencent par "/users/{userId}/profiles/".
+ * {userId} est l'identifiant de l'utilisateur dont on veut voir les profils.
+ *
+ * Note : Ce contrôleur est l'ancien système de gestion des profils.
+ * Le nouveau système principal se trouve dans ProfileController.
+ */
 @RequestMapping("/users/{userId}/profiles")
 @Controller
 public class UserProfileController {
@@ -32,16 +41,24 @@ public class UserProfileController {
 	@Autowired
 	private UserService userService;
 
-	// Liste des profils d'un utilisateur
+	/**
+	 * Affiche la liste de tous les profils d'un utilisateur donné.
+	 * URL : GET /users/{userId}/profiles
+	 *
+	 * canAddProfile est vrai seulement si c'est l'utilisateur lui-même qui consulte
+	 * (on ne peut pas ajouter un profil à quelqu'un d'autre !).
+	 */
 	@GetMapping
 	public ModelAndView list(@PathVariable UUID userId) {
 		User user = userService.getUserById(userId);
 
+		// Récupère l'utilisateur actuellement connecté
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		UUID currentUserId = null;
 		if (auth != null && auth.getPrincipal() instanceof User) {
 			currentUserId = ((User) auth.getPrincipal()).getId();
 		}
+		// On peut ajouter un profil seulement si on visite sa propre page
 		boolean canAddProfile = currentUserId != null && currentUserId.equals(userId);
 
 		ModelAndView mv = new ModelAndView("/profiles/user-profiles");
@@ -52,7 +69,13 @@ public class UserProfileController {
 		return mv;
 	}
 
-	// Formulaire de création d'un profil
+	/**
+	 * Affiche le formulaire de création d'un nouveau profil.
+	 * URL : GET /users/{userId}/profiles/create
+	 *
+	 * Seul l'utilisateur propriétaire peut créer un profil.
+	 * Si quelqu'un d'autre essaie, il est redirigé vers la liste des profils.
+	 */
 	@GetMapping("/create")
 	public String createForm(@PathVariable UUID userId, ModelMap model) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -60,6 +83,7 @@ public class UserProfileController {
 			return "redirect:/users/" + userId + "/profiles";
 		}
 		User currentUser = (User) auth.getPrincipal();
+		// Vérification : c'est bien MON profil que je crée ?
 		if (!userId.equals(currentUser.getId())) {
 			return "redirect:/users/" + userId + "/profiles";
 		}
@@ -71,7 +95,12 @@ public class UserProfileController {
 		return "/profiles/create-form";
 	}
 
-	// Création d'un profil
+	/**
+	 * Enregistre le nouveau profil dans la base de données.
+	 * URL : POST /users/{userId}/profiles/create
+	 *
+	 * Si la création échoue (ex : nom déjà pris), on réaffiche le formulaire avec l'erreur.
+	 */
 	@PostMapping("/create")
 	public String create(@PathVariable UUID userId, @ModelAttribute ProfileRequestDto profileDto, ModelMap model) {
 		try {
@@ -79,6 +108,7 @@ public class UserProfileController {
 			profileService.createProfile(profileDto);
 			return "redirect:/users/" + userId + "/profiles";
 		} catch (IllegalArgumentException e) {
+			// En cas d'erreur, on réaffiche le formulaire avec les données saisies et le message d'erreur
 			User user = userService.getUserById(userId);
 			Profile p = new Profile();
 			p.setName(profileDto.getUsername());
@@ -90,7 +120,10 @@ public class UserProfileController {
 		}
 	}
 
-	// Voir un profil spécifique
+	/**
+	 * Affiche le détail d'un profil spécifique.
+	 * URL : GET /users/{userId}/profiles/{profileId}
+	 */
 	@GetMapping("/{profileId}")
 	public String show(@PathVariable UUID userId, @PathVariable UUID profileId, ModelMap model) {
 		Profile profile = profileService.getProfileById(profileId);
@@ -101,7 +134,11 @@ public class UserProfileController {
 		return "/profiles/show";
 	}
 
-	// Supprimer un profil
+	/**
+	 * Archive un profil (soft delete : le profil n'est pas supprimé, juste masqué).
+	 * URL : POST /users/{userId}/profiles/{profileId}/delete
+	 * Redirige vers la liste des profils après archivage.
+	 */
 	@PostMapping("/{profileId}/delete")
 	public RedirectView delete(@PathVariable UUID userId, @PathVariable UUID profileId) {
 		profileService.archiveProfile(profileId);

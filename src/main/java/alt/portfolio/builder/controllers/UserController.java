@@ -23,7 +23,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 /**
- * Contrôleur pour la gestion des comptes utilisateurs
+ * Contrôleur qui gère les actions liées au compte de l'utilisateur connecté :
+ * modifier ses informations personnelles, supprimer son compte, voir son profil.
+ *
+ * Toutes les routes commencent par "/users/".
  */
 @RequestMapping("/users")
 @Controller
@@ -33,7 +36,8 @@ public class UserController {
 	private UserService userService;
 
 	/**
-	 * Page d'accueil - redirige vers mes profils
+	 * Quand on visite /users ou /users/, on est directement redirigé
+	 * vers la liste des profils. C'est la page principale après la connexion.
 	 */
 	@GetMapping(path = { "", "/" })
 	public String index() {
@@ -41,7 +45,11 @@ public class UserController {
 	}
 
 	/**
-	 * US-004: Affiche le formulaire d'édition du profil utilisateur
+	 * US-004 : Affiche le formulaire de modification du compte.
+	 * URL : GET /users/edit
+	 *
+	 * On pré-remplit le formulaire avec les infos actuelles de l'utilisateur
+	 * (prénom, nom, email) pour qu'il n'ait qu'à modifier ce qu'il veut changer.
 	 */
 	@GetMapping("/edit")
 	public String editProfile(ModelMap model) {
@@ -50,6 +58,7 @@ public class UserController {
 			return "redirect:/login";
 		}
 
+		// On crée un DTO pré-rempli avec les valeurs actuelles
 		UserUpdateDto updateDto = new UserUpdateDto();
 		updateDto.setFirstname(currentUser.getFirstname());
 		updateDto.setLastname(currentUser.getLastname());
@@ -61,17 +70,22 @@ public class UserController {
 	}
 
 	/**
-	 * US-004: Met à jour le profil utilisateur
+	 * US-004 : Enregistre les modifications du compte utilisateur.
+	 * URL : POST /users/edit
+	 *
+	 * On vérifie d'abord que les nouvelles valeurs sont valides,
+	 * puis on met à jour la base de données.
 	 */
 	@PostMapping("/edit")
 	public String updateProfile(@Valid @ModelAttribute("userUpdate") UserUpdateDto updateDto,
 			BindingResult bindingResult, ModelMap model, RedirectAttributes redirectAttributes) {
-		
+
 		User currentUser = AuthUtils.getCurrentUser();
 		if (currentUser == null) {
 			return "redirect:/login";
 		}
 
+		// Si le formulaire a des erreurs de validation, on réaffiche le formulaire avec les erreurs
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("user", currentUser);
 			return "/users/edit";
@@ -82,6 +96,7 @@ public class UserController {
 			redirectAttributes.addFlashAttribute("successMessage", "Profil mis à jour avec succès !");
 			return "redirect:/users/edit";
 		} catch (IllegalArgumentException e) {
+			// Ex : email déjà utilisé par quelqu'un d'autre
 			model.addAttribute("error", e.getMessage());
 			model.addAttribute("user", currentUser);
 			return "/users/edit";
@@ -89,7 +104,11 @@ public class UserController {
 	}
 
 	/**
-	 * US-005: Supprime le compte utilisateur
+	 * US-005 : Supprime définitivement le compte de l'utilisateur connecté.
+	 * URL : POST /users/delete-account
+	 *
+	 * Après la suppression, on déconnecte l'utilisateur et on le redirige
+	 * vers la page d'inscription (puisque son compte n'existe plus).
 	 */
 	@PostMapping("/delete-account")
 	public String deleteAccount(HttpServletRequest request, RedirectAttributes redirectAttributes) throws EntityNotFoundException {
@@ -101,7 +120,7 @@ public class UserController {
 		UUID userId = currentUser.getId();
 		userService.deleteAccount(userId);
 
-		// Invalider la session
+		// On efface la session pour déconnecter l'utilisateur après suppression
 		org.springframework.security.core.context.SecurityContextHolder.clearContext();
 		request.getSession().invalidate();
 
@@ -110,10 +129,13 @@ public class UserController {
 	}
 
 	/**
-	 * Affiche les détails d'un utilisateur (admin ou propriétaire)
+	 * Affiche le détail d'un compte utilisateur.
+	 * URL : GET /users/{id}
+	 * Seul le propriétaire du compte ou un admin peut voir cette page.
 	 */
 	@GetMapping("/{id}")
 	public String show(@PathVariable UUID id, ModelMap model) throws EntityNotFoundException {
+		// Vérification : est-ce que c'est mon compte ou suis-je admin ?
 		if (!AuthUtils.isOwnerOrAdmin(id)) {
 			return "redirect:/";
 		}
