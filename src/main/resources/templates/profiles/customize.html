@@ -1,0 +1,323 @@
+{{ > /partials/header}}
+
+<style>
+.preview-frame {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 30px;
+    min-height: 300px;
+    transition: background-color 0.3s, color 0.3s;
+}
+.palette-swatch {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    border: 3px solid transparent;
+    margin: 4px;
+    transition: transform 0.15s, border-color 0.15s;
+}
+.palette-swatch:hover { transform: scale(1.2); }
+.palette-swatch.selected { border-color: #333; transform: scale(1.15); }
+.tab-btn {
+    padding: 10px 24px;
+    border: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    background: none;
+    font-size: 15px;
+    font-weight: bold;
+    color: #666;
+}
+.tab-btn.active { border-bottom-color: #667eea; color: #667eea; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.template-card {
+    border: 2px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    text-align: center;
+}
+.template-card:hover { border-color: #667eea; }
+.template-card.selected { border-color: #667eea; background: #f0f2ff; }
+</style>
+
+<div class="container">
+    <div class="card" style="max-width: 1100px; margin: 30px auto;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 class="card-title" style="margin:0;">Personnalisation : {{profile.name}}</h2>
+            <a href="/profiles/my-profiles" class="btn btn-secondary" style="text-decoration:none;">Retour</a>
+        </div>
+        <div class="card-body">
+            {{#successMessage}}<div class="alert alert-success">{{successMessage}}</div>{{/successMessage}}
+            {{#error}}<div class="alert alert-danger">{{error}}</div>{{/error}}
+
+            <!-- Onglets CV / Portfolio -->
+            <div style="border-bottom: 2px solid #eee; margin-bottom: 25px;">
+                <button class="tab-btn active" onclick="switchTab('cv', this)">Vue CV</button>
+                <button class="tab-btn" onclick="switchTab('portfolio', this)">Vue Portfolio</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <!-- Colonne gauche : options -->
+                <div>
+                    <!-- ===== ONGLET CV ===== -->
+                    <div id="tab-cv" class="tab-panel active">
+
+                        <!-- US-024 : Template CV -->
+                        <h3>Template CV</h3>
+                        <form method="post" action="/profiles/{{profile.id}}/customize/template">
+                            <input type="hidden" name="viewType" value="cv">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                                {{#templates}}
+                                <label>
+                                    <input type="radio" name="templateId" value="{{id}}"
+                                        {{#currentCvTemplateId}}{{#isCvTemplate}}checked{{/isCvTemplate}}{{/currentCvTemplateId}}
+                                        style="display:none;">
+                                    <div class="template-card" onclick="selectTemplate(this, '{{layoutKey}}', 'cv')">
+                                        <div style="font-size:24px; margin-bottom:8px;">
+                                            {{#isClassic}}📄{{/isClassic}}
+                                            {{#isModern}}🎨{{/isModern}}
+                                            {{#isMinimal}}◻{{/isMinimal}}
+                                            {{#isCreative}}✨{{/isCreative}}
+                                        </div>
+                                        <strong>{{name}}</strong>
+                                        <p style="font-size:12px; color:#666; margin:5px 0 0 0;">{{description}}</p>
+                                    </div>
+                                </label>
+                                {{/templates}}
+                            </div>
+                            <button type="submit" class="btn btn-primary">Appliquer le template</button>
+                        </form>
+
+                        <!-- US-025 / US-028 : Couleur CV -->
+                        <h3 style="margin-top:25px;">Couleur CV</h3>
+                        <form method="post" action="/profiles/{{profile.id}}/customize/color">
+                            <input type="hidden" name="viewType" value="cv">
+                            <div id="palette-cv" style="margin-bottom:12px;">
+                                {{#palette}}
+                                <span class="palette-swatch"
+                                      style="background-color:{{.}};"
+                                      title="{{.}}"
+                                      onclick="pickColor('{{.}}', 'cv', this)"></span>
+                                {{/palette}}
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                                <label>Couleur personnalisée :</label>
+                                <input type="color" id="customColorCv" value="{{profile.cvColor}}"
+                                       oninput="pickColor(this.value, 'cv', null)">
+                            </div>
+                            <input type="hidden" name="color" id="colorInputCv" value="{{profile.cvColor}}">
+                            <button type="submit" class="btn btn-primary">Sauvegarder la couleur</button>
+                        </form>
+
+                        <!-- US-030 : Photo de profil -->
+                        <h3 style="margin-top:25px;">Photo de profil</h3>
+                        <form method="post" action="/profiles/{{profile.id}}/customize/upload-photo" enctype="multipart/form-data">
+                            {{#profile.imageUrl}}
+                            <div style="margin-bottom:10px;">
+                                <img src="{{profile.imageUrl}}" alt="Photo actuelle"
+                                     style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid #ddd;">
+                            </div>
+                            {{/profile.imageUrl}}
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <input type="file" name="photo" accept="image/*" required style="flex:1;">
+                                <button type="submit" class="btn btn-primary">Uploader</button>
+                            </div>
+                            <p style="color:#999; font-size:12px; margin-top:5px;">Max 5 Mo — JPG, PNG, GIF, WebP</p>
+                        </form>
+                    </div>
+
+                    <!-- ===== ONGLET PORTFOLIO ===== -->
+                    <div id="tab-portfolio" class="tab-panel">
+
+                        <!-- US-024 : Template Portfolio -->
+                        <h3>Template Portfolio</h3>
+                        <form method="post" action="/profiles/{{profile.id}}/customize/template">
+                            <input type="hidden" name="viewType" value="portfolio">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                                {{#templates}}
+                                <label>
+                                    <input type="radio" name="templateId" value="{{id}}" style="display:none;">
+                                    <div class="template-card" onclick="selectTemplate(this, '{{layoutKey}}', 'portfolio')">
+                                        <div style="font-size:24px; margin-bottom:8px;">
+                                            {{#isClassic}}📄{{/isClassic}}
+                                            {{#isModern}}🎨{{/isModern}}
+                                            {{#isMinimal}}◻{{/isMinimal}}
+                                            {{#isCreative}}✨{{/isCreative}}
+                                        </div>
+                                        <strong>{{name}}</strong>
+                                        <p style="font-size:12px; color:#666; margin:5px 0 0 0;">{{description}}</p>
+                                    </div>
+                                </label>
+                                {{/templates}}
+                            </div>
+                            <button type="submit" class="btn btn-primary">Appliquer le template</button>
+                        </form>
+
+                        <!-- US-028 : Couleur Portfolio -->
+                        <h3 style="margin-top:25px;">Couleur Portfolio</h3>
+                        <form method="post" action="/profiles/{{profile.id}}/customize/color">
+                            <input type="hidden" name="viewType" value="portfolio">
+                            <div id="palette-portfolio" style="margin-bottom:12px;">
+                                {{#palette}}
+                                <span class="palette-swatch"
+                                      style="background-color:{{.}};"
+                                      title="{{.}}"
+                                      onclick="pickColor('{{.}}', 'portfolio', this)"></span>
+                                {{/palette}}
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                                <label>Couleur personnalisée :</label>
+                                <input type="color" id="customColorPortfolio" value="{{profile.portfolioColor}}"
+                                       oninput="pickColor(this.value, 'portfolio', null)">
+                            </div>
+                            <input type="hidden" name="color" id="colorInputPortfolio" value="{{profile.portfolioColor}}">
+                            <button type="submit" class="btn btn-primary">Sauvegarder la couleur</button>
+                        </form>
+
+                        <!-- US-031 : Images des projets -->
+                        {{#profile.rubrics}}
+                        {{#visible}}
+                        <h3 style="margin-top:25px;">Images des projets — {{name}}</h3>
+                        {{#items}}
+                        <div style="display:flex; align-items:center; gap:15px; padding:10px; border:1px solid #eee; border-radius:6px; margin-bottom:10px;">
+                            {{#imageUrl}}
+                            <img src="{{imageUrl}}" alt="" style="width:60px; height:60px; object-fit:cover; border-radius:4px;">
+                            {{/imageUrl}}
+                            {{^imageUrl}}
+                            <div style="width:60px; height:60px; background:#f0f0f0; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999;">?</div>
+                            {{/imageUrl}}
+                            <div style="flex:1;">
+                                <strong>{{title}}</strong>
+                                <form method="post" action="/profiles/{{profile.id}}/customize/items/{{id}}/upload-image"
+                                      enctype="multipart/form-data" style="margin-top:5px; display:flex; gap:8px;">
+                                    <input type="file" name="image" accept="image/*" style="flex:1; font-size:13px;">
+                                    <button type="submit" class="btn btn-secondary" style="padding:4px 10px; font-size:13px;">Ajouter</button>
+                                </form>
+                            </div>
+                        </div>
+                        {{/items}}
+                        {{/visible}}
+                        {{/profile.rubrics}}
+                    </div>
+                </div>
+
+                <!-- Colonne droite : US-029 preview temps réel -->
+                <div>
+                    <h3>Aperçu en temps réel</h3>
+                    <div id="preview-cv" class="preview-frame">
+                        <div style="text-align:center; padding:20px 0 15px 0; border-bottom: 3px solid var(--accent); margin-bottom:20px;">
+                            {{#profile.imageUrl}}
+                            <img src="{{profile.imageUrl}}" id="preview-photo"
+                                 style="width:70px; height:70px; border-radius:50%; object-fit:cover; margin-bottom:10px;">
+                            {{/profile.imageUrl}}
+                            <div style="font-weight:bold; font-size:18px; color:var(--accent);">{{profile.name}}</div>
+                        </div>
+                        <div style="font-size:13px; color:#555; line-height:1.6;">{{profile.description}}</div>
+                        {{#profile.rubrics}}
+                        {{#visible}}
+                        <div style="margin-top:15px;">
+                            <div style="font-weight:bold; font-size:14px; color:var(--accent); border-bottom:2px solid var(--accent); padding-bottom:3px; margin-bottom:8px;">{{name}}</div>
+                            {{#items}}
+                            <div style="font-size:13px; margin-bottom:4px;">• {{title}}</div>
+                            {{/items}}
+                        </div>
+                        {{/visible}}
+                        {{/profile.rubrics}}
+                    </div>
+
+                    <div id="preview-portfolio" class="preview-frame" style="display:none;">
+                        <div style="background:var(--accent); padding:25px; border-radius:8px; text-align:center; color:white; margin-bottom:20px;">
+                            {{#profile.imageUrl}}
+                            <img src="{{profile.imageUrl}}" id="preview-photo-p"
+                                 style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid white; margin-bottom:10px;">
+                            {{/profile.imageUrl}}
+                            <div style="font-weight:bold; font-size:20px;">{{profile.name}}</div>
+                        </div>
+                        <div style="font-size:14px; color:#555; text-align:center; margin-bottom:15px;">{{profile.description}}</div>
+                        {{#profile.rubrics}}
+                        {{#visible}}
+                        <div style="margin-bottom:15px;">
+                            <div style="font-weight:bold; color:var(--accent); text-align:center; margin-bottom:8px;">{{name}}</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                {{#items}}
+                                <div style="background:#f8f8f8; border-radius:6px; padding:8px 12px; font-size:13px;">{{title}}</div>
+                                {{/items}}
+                            </div>
+                        </div>
+                        {{/visible}}
+                        {{/profile.rubrics}}
+                    </div>
+
+                    <div style="margin-top:15px; display:flex; gap:10px;">
+                        <a href="/profiles/{{profile.id}}/preview?mode=cv" target="_blank"
+                           class="btn btn-secondary" style="text-decoration:none; font-size:13px;">Prévisualisation complète CV</a>
+                        <a href="/profiles/{{profile.id}}/preview?mode=portfolio" target="_blank"
+                           class="btn btn-secondary" style="text-decoration:none; font-size:13px;">Prévisualisation complète Portfolio</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var currentCvColor = '{{profile.cvColor}}';
+var currentPortfolioColor = '{{profile.portfolioColor}}';
+var activeTab = 'cv';
+
+// init couleur
+setAccentColor(currentCvColor);
+
+function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+    activeTab = tab;
+
+    document.getElementById('preview-cv').style.display = tab === 'cv' ? 'block' : 'none';
+    document.getElementById('preview-portfolio').style.display = tab === 'portfolio' ? 'block' : 'none';
+
+    setAccentColor(tab === 'cv' ? currentCvColor : currentPortfolioColor);
+}
+
+function pickColor(color, view, swatchEl) {
+    if (view === 'cv') {
+        currentCvColor = color;
+        document.getElementById('colorInputCv').value = color;
+        document.getElementById('customColorCv').value = color;
+    } else {
+        currentPortfolioColor = color;
+        document.getElementById('colorInputPortfolio').value = color;
+        document.getElementById('customColorPortfolio').value = color;
+    }
+    if (view === activeTab) setAccentColor(color);
+
+    // mise en évidence de la swatch sélectionnée
+    if (swatchEl) {
+        document.querySelectorAll('#palette-' + view + ' .palette-swatch').forEach(s => s.classList.remove('selected'));
+        swatchEl.classList.add('selected');
+    }
+}
+
+function setAccentColor(color) {
+    document.getElementById('preview-cv').style.setProperty('--accent', color);
+    document.getElementById('preview-portfolio').style.setProperty('--accent', color);
+}
+
+function selectTemplate(cardEl, layoutKey, view) {
+    // radio input
+    var label = cardEl.closest('label');
+    if (label) label.querySelector('input[type=radio]').checked = true;
+    // highlight
+    var form = cardEl.closest('form');
+    form.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+    cardEl.classList.add('selected');
+}
+</script>
+
+{{ > /partials/footer}}

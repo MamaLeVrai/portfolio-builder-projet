@@ -15,10 +15,13 @@ public class Template {
 	
 	@Column(length = 50, nullable = false)
 	private String name;
-	
-	// description TEXT dans le MLD, on laisse Hibernate choisir le type sans columnDefinition
+
 	@Column(nullable = true, length = 1000)
 	private String description;
+
+	// clé identifiant le layout CSS (classic, modern, minimal, creative)
+	@Column(length = 30, nullable = false)
+	private String layoutKey = "classic";
 	
 	// relation inverse avec Profile (template et template1)
 	@OneToMany(mappedBy = "template")

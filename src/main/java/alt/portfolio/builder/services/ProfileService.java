@@ -17,8 +17,10 @@ import alt.portfolio.builder.dtos.ProfileUpdateDto;
 import alt.portfolio.builder.entities.Profile;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.entities.ProfileView;
+import alt.portfolio.builder.entities.Template;
 import alt.portfolio.builder.repositories.ProfileRepositories;
 import alt.portfolio.builder.repositories.ProfileViewRepositories;
+import alt.portfolio.builder.repositories.TemplateRepositories;
 import alt.portfolio.builder.repositories.UserRepositories;
 
 @Service
@@ -32,6 +34,9 @@ public class ProfileService {
 
 	@Autowired
 	private ProfileViewRepositories profileViewRepositories;
+
+	@Autowired
+	private TemplateRepositories templateRepositories;
 
 	public List<Profile> getProfiles() {
 		return profileRepositories.findByArchivedFalse();
@@ -242,5 +247,49 @@ public class ProfileService {
 
 	public List<ProfileView> getRecentViews(Profile profile) {
 		return profileViewRepositories.findByProfileOrderByViewedAtDesc(profile);
+	}
+
+	// US-024: Choisir un template CV ou Portfolio
+	public Profile setTemplate(UUID profileId, UUID templateId, String viewType, User currentUser) throws UnauthorizedException {
+		Profile profile = getProfileById(profileId);
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			throw new UnauthorizedException("Non autorisé");
+		}
+		Template template = templateRepositories.findById(templateId)
+				.orElseThrow(() -> new RuntimeException("Template introuvable"));
+		if ("cv".equals(viewType)) {
+			profile.setTemplate(template);
+		} else {
+			profile.setTemplate1(template);
+		}
+		return profileRepositories.save(profile);
+	}
+
+	// US-025 / US-028: Couleur par vue
+	public Profile setColor(UUID profileId, String color, String viewType, User currentUser) throws UnauthorizedException {
+		Profile profile = getProfileById(profileId);
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			throw new UnauthorizedException("Non autorisé");
+		}
+		if ("cv".equals(viewType)) {
+			profile.setCvColor(color);
+		} else {
+			profile.setPortfolioColor(color);
+		}
+		return profileRepositories.save(profile);
+	}
+
+	// US-030: Sauvegarder l'URL de la photo de profil
+	public Profile setProfilePhoto(UUID profileId, String photoUrl, User currentUser) throws UnauthorizedException {
+		Profile profile = getProfileById(profileId);
+		if (!profile.getOwner().getId().equals(currentUser.getId())) {
+			throw new UnauthorizedException("Non autorisé");
+		}
+		profile.setImageUrl(photoUrl);
+		return profileRepositories.save(profile);
+	}
+
+	public List<Template> getAllTemplates() {
+		return templateRepositories.findAll();
 	}
 }

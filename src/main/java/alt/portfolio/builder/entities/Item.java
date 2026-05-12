@@ -27,6 +27,10 @@ public class Item {
 	@Column(name = "order_", nullable = false)
 	private Byte order;
 	
+	// image pour la vue Portfolio (US-031)
+	@Column(length = 255, nullable = true)
+	private String imageUrl;
+
 	// #Id_Location*
 	@ManyToOne(optional = true)
 	private Location location;

@@ -61,6 +61,15 @@ public class Profile {
 	@Column(nullable = false)
 	private long viewCount = 0;
 
+	// couleur principale pour la vue CV (hex, ex: #2c3e50)
+	@Column(length = 7, nullable = false)
+	private String cvColor = "#2c3e50";
+
+	// couleur principale pour la vue Portfolio
+	@Column(length = 7, nullable = false)
+	private String portfolioColor = "#667eea";
+
+	// template = vue CV, template1 = vue Portfolio
 	@ManyToOne(optional = true)
 	private Template template;
 
