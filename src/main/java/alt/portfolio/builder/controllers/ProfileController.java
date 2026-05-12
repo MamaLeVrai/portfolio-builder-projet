@@ -19,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import alt.portfolio.builder.dtos.ProfileCreateDto;
 import alt.portfolio.builder.dtos.ProfileUpdateDto;
+import alt.portfolio.builder.entities.ContactMessage;
 import alt.portfolio.builder.entities.Profile;
 import alt.portfolio.builder.entities.ProfileView;
 import alt.portfolio.builder.entities.User;
@@ -314,6 +315,50 @@ public class ProfileController {
 		model.addAttribute("isPublishedAsPortfolio", profile.isPublishedAsPortfolio());   // pour pré-cocher la case Portfolio
 		model.addAttribute("isPublished", profile.isPublishedAsCv() || profile.isPublishedAsPortfolio()); // au moins une vue publiée ?
 		return "/profiles/publish";
+	}
+
+	/**
+	 * (Epic 6 - US-037) Enregistre le slug personnalisé d'un profil.
+	 * URL : POST /profiles/{id}/slug
+	 *
+	 * Le slug est nettoyé automatiquement par ProfileService.updateSlug() :
+	 * espaces → tirets, majuscules → minuscules, caractères spéciaux supprimés.
+	 */
+	@PostMapping("/{id}/slug")
+	public String updateSlug(@PathVariable UUID id,
+			@RequestParam(required = false) String slug,
+			RedirectAttributes redirectAttributes) throws UnauthorizedException {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) return "redirect:/login";
+
+		try {
+			profileService.updateSlug(id, slug, currentUser);
+			redirectAttributes.addFlashAttribute("successMessage", "Slug mis à jour avec succès !");
+		} catch (IllegalArgumentException e) {
+			redirectAttributes.addFlashAttribute("error", e.getMessage());
+		}
+		return "redirect:/profiles/" + id + "/edit";
+	}
+
+	/**
+	 * (Epic 6 - US-036) Affiche les messages de contact reçus sur un profil portfolio.
+	 * URL : GET /profiles/{id}/messages
+	 *
+	 * Seul le propriétaire du profil peut voir ses messages.
+	 * Les messages sont marqués comme lus lors de la consultation.
+	 */
+	@GetMapping("/{id}/messages")
+	public String viewMessages(@PathVariable UUID id, ModelMap model) throws UnauthorizedException {
+		User currentUser = AuthUtils.getCurrentUser();
+		if (currentUser == null) return "redirect:/login";
+
+		Profile profile = profileService.getProfileById(id);
+		List<ContactMessage> messages = profileService.getContactMessages(profile, currentUser);
+
+		model.addAttribute("profile", profile);
+		model.addAttribute("messages", messages);
+		model.addAttribute("hasMessages", !messages.isEmpty());
+		return "/profiles/messages";
 	}
 
 	/**

@@ -53,4 +53,22 @@ public interface ProfileRepositories extends JpaRepository<Profile, UUID> {
      * Utilisé pour afficher la page publique /public/portfolio/{username}.
      */
     Optional<Profile> findByOwnerAndIsDefaultTrueAndPublishedAsPortfolioTrue(User owner);
+
+    /**
+     * (Epic 6 - US-037) Trouve le profil publié en CV qui a ce slug personnalisé.
+     * Utilisé par PublicController pour résoudre /public/cv/{slug}.
+     */
+    Optional<Profile> findBySlugAndPublishedAsCvTrue(String slug);
+
+    /**
+     * (Epic 6 - US-037) Trouve le profil publié en Portfolio qui a ce slug personnalisé.
+     * Utilisé par PublicController pour résoudre /public/portfolio/{slug}.
+     */
+    Optional<Profile> findBySlugAndPublishedAsPortfolioTrue(String slug);
+
+    /**
+     * (Epic 6 - US-037) Vérifie qu'un slug n'est pas déjà utilisé par un autre profil.
+     * Retourne le profil ayant ce slug, s'il existe.
+     */
+    Optional<Profile> findBySlug(String slug);
 }

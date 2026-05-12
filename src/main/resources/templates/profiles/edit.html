@@ -46,6 +46,30 @@
                 </div>
                 {{/profileUpdate}}
             </form>
+
+            <!-- (Epic 6 - US-037) Formulaire séparé pour le slug personnalisé -->
+            <!-- Formulaire séparé car le slug a sa propre validation et nettoyage côté serveur -->
+            <!-- Alternative non retenue : intégrer le slug dans le formulaire principal →
+                 risque de conflit si la validation du slug échoue et annule toute la mise à jour -->
+            <hr style="margin: 30px 0;">
+            <h3 style="margin-bottom:10px;">Slug personnalisé (US-037)</h3>
+            <p style="color:#666; font-size:14px; margin-bottom:15px;">
+                Le slug est l'identifiant dans l'URL publique de votre profil.<br>
+                Exemple : si vous entrez <strong>mon-cv-dev</strong>, votre CV sera accessible à
+                <code>/public/cv/mon-cv-dev</code> au lieu de <code>/public/cv/{{profile.owner.username}}</code>.<br>
+                Laissez vide pour utiliser votre nom d'utilisateur par défaut.
+            </p>
+            <form method="post" action="/profiles/{{profile.id}}/slug" style="display:flex; gap:10px; align-items:flex-end;">
+                <div class="form-group" style="flex:1; margin-bottom:0;">
+                    <label class="form-label">Slug actuel</label>
+                    <input type="text" name="slug" value="{{profile.slug}}"
+                           placeholder="mon-cv-dev"
+                           style="font-family: monospace;"
+                           pattern="[a-zA-Z0-9\-]*"
+                           title="Lettres, chiffres et tirets uniquement">
+                </div>
+                <button type="submit" class="btn btn-primary" style="height:42px;">Enregistrer</button>
+            </form>
         </div>
     </div>
 </div>

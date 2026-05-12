@@ -5,50 +5,58 @@
     <title>Portfolio - {{owner.firstname}} {{owner.lastname}}</title>
     <link rel="stylesheet" href="/styles/main.css">
     <style>
-        :root { --accent: {{profile.portfolioColor}}; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
-
-        /* classic */
-        .layout-classic .portfolio-hero { background: var(--accent); padding: 60px 20px; text-align: center; color: white; }
-        .layout-classic .portfolio-section h2 { text-align: center; color: var(--accent); font-size: 24px; margin-bottom: 25px; }
-
-        /* modern */
-        .layout-modern .portfolio-hero { background: linear-gradient(135deg, var(--accent) 0%, #764ba2 100%); padding: 70px 20px; text-align: center; color: white; }
-        .layout-modern .portfolio-section h2 { color: var(--accent); font-size: 22px; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 25px; }
-        .layout-modern .portfolio-card { border-top: 4px solid var(--accent); }
-
-        /* minimal */
-        .layout-minimal .portfolio-hero { background: white; padding: 50px 20px; text-align: left; border-bottom: 4px solid var(--accent); }
-        .layout-minimal .portfolio-hero h1 { color: #222; }
-        .layout-minimal .portfolio-hero p { color: var(--accent); }
-        .layout-minimal .portfolio-section h2 { color: var(--accent); font-size: 16px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
-
-        /* creative */
-        .layout-creative .portfolio-hero { background: linear-gradient(160deg, var(--accent) 60%, #f5f5f5 60%); padding: 80px 20px 60px; text-align: center; color: white; }
-        .layout-creative .portfolio-section h2 { color: white; background: var(--accent); display: inline-block; padding: 6px 20px; border-radius: 20px; font-size: 18px; margin-bottom: 20px; }
-
-        /* commun */
+        .portfolio-hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 20px; text-align: center; color: white; }
         .portfolio-hero h1 { margin: 0; font-size: 36px; }
-        .portfolio-hero p { color: rgba(255,255,255,0.85); font-size: 18px; margin: 10px 0 0 0; }
-        .layout-minimal .portfolio-hero p { color: var(--accent); }
-        .portfolio-photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid white; margin-bottom: 20px; }
-        .layout-minimal .portfolio-photo { border-color: var(--accent); }
+        .portfolio-hero p { color: rgba(255,255,255,0.8); font-size: 18px; margin: 10px 0 0 0; }
+        .portfolio-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; margin-bottom: 20px; }
         .portfolio-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
         .portfolio-description { text-align: center; max-width: 700px; margin: 0 auto 40px auto; font-size: 18px; color: #555; line-height: 1.6; }
         .portfolio-section { margin-bottom: 40px; }
+        .portfolio-section h2 { text-align: center; color: #667eea; font-size: 24px; margin-bottom: 25px; }
         .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .portfolio-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; }
+        .portfolio-card { background: white; border-radius: 10px; padding: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; }
         .portfolio-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
-        .portfolio-card-img { width: 100%; height: 160px; object-fit: cover; display: block; }
-        .portfolio-card-body { padding: 20px; }
-        .portfolio-card h4 { margin: 0 0 8px 0; color: #333; font-size: 17px; }
-        .portfolio-card p { color: #666; margin: 0 0 8px 0; line-height: 1.5; font-size: 14px; }
+        .portfolio-card h4 { margin: 0 0 10px 0; color: #333; font-size: 18px; }
+        .portfolio-card p { color: #666; margin: 0 0 10px 0; line-height: 1.5; }
         .portfolio-card .meta { color: #999; font-size: 13px; }
         .portfolio-footer { text-align: center; padding: 30px; color: #aaa; font-size: 12px; border-top: 1px solid #eee; }
+
+        /* (US-038) Barre de recherche rubriques — client-side JS, zéro requête serveur.
+           Alternatives rejetées :
+           - Requête AJAX/Fetch : plus complexe, nécessite endpoint dédié
+           - Elasticsearch / Algolia : overkill pour un portfolio perso */
+        .search-bar-wrapper { text-align: center; margin-bottom: 30px; }
+        .search-bar-wrapper input {
+            width: 100%; max-width: 500px; padding: 10px 16px;
+            border: 2px solid #ddd; border-radius: 25px; font-size: 16px; outline: none;
+        }
+        .search-bar-wrapper input:focus { border-color: #667eea; }
+
+        /* (US-036) Formulaire de contact.
+           Alternatives rejetées :
+           - Envoi par SMTP (JavaMailSender) : nécessite config serveur mail, credentials, risque spam
+           - Service tiers (SendGrid, Mailgun) : dépendance externe, clé API à gérer
+           Choix retenu : stockage en base de données, consultation via /profiles/{id}/messages */
+        .contact-section { background: #f9f9f9; border-top: 1px solid #eee; padding: 50px 20px; }
+        .contact-section h2 { text-align: center; color: #333; font-size: 24px; margin-bottom: 25px; }
+        .contact-form { max-width: 550px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+        .contact-form input, .contact-form textarea {
+            padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px;
+            font-size: 15px; font-family: inherit;
+        }
+        .contact-form textarea { resize: vertical; min-height: 120px; }
+        .contact-form button {
+            padding: 12px; background: #667eea; color: white; border: none;
+            border-radius: 6px; font-size: 16px; cursor: pointer;
+        }
+        .contact-form button:hover { background: #5a6fd6; }
+        .contact-alert { max-width: 550px; margin: 0 auto 15px auto; padding: 10px 14px; border-radius: 6px; }
+        .contact-alert-success { background: #d4edda; color: #155724; }
+        .contact-alert-error   { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
-<div class="layout-{{profile.template1.layoutKey}}{{^profile.template1}}layout-classic{{/profile.template1}}">
     <div class="portfolio-hero">
         {{#profile.imageUrl}}
         <img src="{{profile.imageUrl}}" alt="Photo" class="portfolio-photo">
@@ -59,32 +67,83 @@
 
     <div class="portfolio-container">
         {{#profile.description}}
-        <div class="portfolio-description"><p>{{profile.description}}</p></div>
+        <div class="portfolio-description">
+            <p>{{profile.description}}</p>
+        </div>
         {{/profile.description}}
 
+        <!-- (US-038) Barre de recherche — filtre les rubriques et items côté client en temps réel -->
+        <div class="search-bar-wrapper">
+            <input type="text" id="rubricSearch" placeholder="Rechercher dans le portfolio…" oninput="filterRubrics(this.value)">
+        </div>
+
+        <div id="rubrics-container">
         {{#profile.rubrics}}
         {{#visible}}
-        <div class="portfolio-section">
-            <h2>{{name}}</h2>
+        <div class="portfolio-section rubric-section">
+            <h2 class="rubric-title">{{name}}</h2>
             <div class="portfolio-grid">
                 {{#items}}
-                <div class="portfolio-card">
-                    {{#imageUrl}}<img src="{{imageUrl}}" class="portfolio-card-img">{{/imageUrl}}
-                    <div class="portfolio-card-body">
-                        <h4>{{title}}</h4>
-                        {{#description}}<p>{{description}}</p>{{/description}}
-                        {{#startDate}}<p class="meta">{{startDate}} {{#endDate}}- {{endDate}}{{/endDate}}</p>{{/startDate}}
-                        {{#location}}<p class="meta">{{name}}, {{address}}</p>{{/location}}
-                    </div>
+                <div class="portfolio-card rubric-item">
+                    <h4 class="item-title">{{title}}</h4>
+                    {{#description}}
+                    <p class="item-desc">{{description}}</p>
+                    {{/description}}
+                    {{#startDate}}
+                    <p class="meta">{{startDate}} {{#endDate}}- {{endDate}}{{/endDate}}</p>
+                    {{/startDate}}
+                    {{#location}}
+                    <p class="meta">{{name}}, {{address}}</p>
+                    {{/location}}
                 </div>
                 {{/items}}
             </div>
         </div>
         {{/visible}}
         {{/profile.rubrics}}
+        </div>
     </div>
 
-    <div class="portfolio-footer">Généré avec Portfolio Builder</div>
-</div>
+    <!-- (US-036) Formulaire de contact public — stocké en base, lu depuis /profiles/{id}/messages -->
+    <div class="contact-section">
+        <h2>Me contacter</h2>
+
+        {{#contactSuccess}}
+        <div class="contact-alert contact-alert-success">{{contactSuccess}}</div>
+        {{/contactSuccess}}
+        {{#contactError}}
+        <div class="contact-alert contact-alert-error">{{contactError}}</div>
+        {{/contactError}}
+
+        <form class="contact-form" method="post" action="/public/contact/{{profile.id}}">
+            <input type="text" name="senderName" placeholder="Votre nom *" required maxlength="100">
+            <input type="email" name="senderEmail" placeholder="Votre email *" required maxlength="100">
+            <textarea name="message" placeholder="Votre message *" required maxlength="2000"></textarea>
+            <button type="submit">Envoyer le message</button>
+        </form>
+    </div>
+
+    <div class="portfolio-footer">
+        Généré avec Portfolio Builder
+    </div>
+
+    <!-- (US-038) Filtre client-side : masque les sections dont aucun item ne correspond -->
+    <script>
+    function filterRubrics(query) {
+        var q = query.trim().toLowerCase();
+        document.querySelectorAll('.rubric-section').forEach(function(section) {
+            var items = section.querySelectorAll('.rubric-item');
+            var sectionMatch = section.querySelector('.rubric-title').textContent.toLowerCase().includes(q);
+            var anyVisible = false;
+            items.forEach(function(item) {
+                var text = item.textContent.toLowerCase();
+                var show = q === '' || sectionMatch || text.includes(q);
+                item.style.display = show ? '' : 'none';
+                if (show) anyVisible = true;
+            });
+            section.style.display = (q === '' || anyVisible || sectionMatch) ? '' : 'none';
+        });
+    }
+    </script>
 </body>
 </html>

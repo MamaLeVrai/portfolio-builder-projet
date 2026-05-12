@@ -18,6 +18,8 @@ import alt.portfolio.builder.entities.Profile;
 import alt.portfolio.builder.entities.User;
 import alt.portfolio.builder.entities.ProfileView;
 import alt.portfolio.builder.entities.Template;
+import alt.portfolio.builder.entities.ContactMessage;
+import alt.portfolio.builder.repositories.ContactMessageRepositories;
 import alt.portfolio.builder.repositories.ProfileRepositories;
 import alt.portfolio.builder.repositories.ProfileViewRepositories;
 import alt.portfolio.builder.repositories.TemplateRepositories;
@@ -55,6 +57,10 @@ public class ProfileService {
     /** Accès à la table "template" (pour les mises en page) */
     @Autowired
     private TemplateRepositories templateRepositories;
+
+    /** (Epic 6 - US-036) Accès à la table des messages de contact */
+    @Autowired
+    private ContactMessageRepositories contactMessageRepositories;
 
     /** Retourne tous les profils non archivés (pour l'admin) */
     public List<Profile> getProfiles() {
@@ -265,26 +271,47 @@ public class ProfileService {
     }
 
     /**
-     * (Epic 4 - US-027) Récupère le profil public CV d'un utilisateur identifié par son pseudo.
-     * Cherche le profil "par défaut" de cet utilisateur qui est publié en tant que CV.
-     * Utilisé par PublicController pour afficher /public/cv/{username}.
+     * (Epic 4 - US-027 / Epic 6 - US-037) Récupère le profil public CV via un identifiant.
+     *
+     * L'identifiant peut être :
+     * 1. Un slug personnalisé (défini par l'utilisateur dans Epic 6, ex: "mon-cv-dev")
+     * 2. Le username de l'utilisateur (comportement original d'Epic 4)
+     *
+     * Stratégie de recherche :
+     * -- On essaie d'abord de trouver un profil publié en CV avec ce slug.
+     * -- Si pas de slug trouvé, on cherche par username (rétrocompatibilité).
+     *
+     * Choix d'implémentation : slug par profil avec fallback username.
+     * -- Alternative non retenue : slug au niveau User (un slug pour tous les profils).
+     * -- Alternative non retenue : changer l'URL pattern (briserait les liens existants).
+     * -- Choix retenu : essai slug d'abord, puis username → aucun lien existant n'est cassé.
      */
-    public Profile getPublicCvProfile(String username) throws EntityNotFoundException {
-        // D'abord on cherche l'utilisateur par son pseudo
-        User owner = userRepositories.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable: " + username));
-        // Puis on cherche son profil par défaut publié en CV
+    public Profile getPublicCvProfile(String identifier) throws EntityNotFoundException {
+        // Étape 1 : cherche un profil ayant ce slug et publié en CV
+        java.util.Optional<Profile> bySlug = profileRepositories.findBySlugAndPublishedAsCvTrue(identifier);
+        if (bySlug.isPresent()) {
+            return bySlug.get();
+        }
+        // Étape 2 : comportement original - cherche par username
+        User owner = userRepositories.findByUsername(identifier)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur ou slug introuvable: " + identifier));
         return profileRepositories.findByOwnerAndIsDefaultTrueAndPublishedAsCvTrue(owner)
                 .orElseThrow(() -> new EntityNotFoundException("Aucun CV publié pour cet utilisateur"));
     }
 
     /**
-     * (Epic 4 - US-027) Récupère le profil public Portfolio d'un utilisateur.
-     * Même logique que getPublicCvProfile, mais pour le Portfolio.
+     * (Epic 4 - US-027 / Epic 6 - US-037) Récupère le profil public Portfolio via un identifiant.
+     * Même logique que getPublicCvProfile : essai slug d'abord, puis username en fallback.
      */
-    public Profile getPublicPortfolioProfile(String username) throws EntityNotFoundException {
-        User owner = userRepositories.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable: " + username));
+    public Profile getPublicPortfolioProfile(String identifier) throws EntityNotFoundException {
+        // Étape 1 : cherche un profil ayant ce slug et publié en Portfolio
+        java.util.Optional<Profile> bySlug = profileRepositories.findBySlugAndPublishedAsPortfolioTrue(identifier);
+        if (bySlug.isPresent()) {
+            return bySlug.get();
+        }
+        // Étape 2 : comportement original - cherche par username
+        User owner = userRepositories.findByUsername(identifier)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur ou slug introuvable: " + identifier));
         return profileRepositories.findByOwnerAndIsDefaultTrueAndPublishedAsPortfolioTrue(owner)
                 .orElseThrow(() -> new EntityNotFoundException("Aucun portfolio publié pour cet utilisateur"));
     }
@@ -383,5 +410,82 @@ public class ProfileService {
     /** Retourne tous les templates disponibles (pour remplir le formulaire de personnalisation) */
     public List<Template> getAllTemplates() {
         return templateRepositories.findAll();
+    }
+
+    /**
+     * (Epic 6 - US-037) Met à jour le slug personnalisé d'un profil.
+     *
+     * Le slug doit être :
+     * - unique (pas déjà pris par un autre profil)
+     * - non vide
+     *
+     * Si le champ est vide ou null, on met le slug à null
+     * (ce qui désactive le slug et revient au comportement par username).
+     *
+     * @param profileId   L'ID du profil à modifier
+     * @param slug        Le nouveau slug (ex: "mon-cv-dev"), ou vide pour désactiver
+     * @param currentUser L'utilisateur connecté (doit être le propriétaire)
+     * @throws UnauthorizedException Si l'utilisateur n'est pas le propriétaire
+     * @throws IllegalArgumentException Si le slug est déjà utilisé par un autre profil
+     */
+    public Profile updateSlug(UUID profileId, String slug, User currentUser) throws UnauthorizedException {
+        Profile profile = getProfileById(profileId);
+        if (!profile.getOwner().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedException("Non autorisé à modifier ce profil");
+        }
+
+        // Si le slug est vide, on le désactive (null = utiliser le username par défaut)
+        if (slug == null || slug.isBlank()) {
+            profile.setSlug(null);
+            return profileRepositories.save(profile);
+        }
+
+        // Nettoie le slug : minuscules, espaces → tirets, sans caractères spéciaux
+        String cleanSlug = slug.trim().toLowerCase()
+                .replaceAll("[^a-z0-9-]", "-")   // remplace tout ce qui n'est pas lettre/chiffre/tiret
+                .replaceAll("-+", "-")             // évite les tirets consécutifs
+                .replaceAll("^-|-$", "");          // enlève les tirets en début/fin
+
+        if (cleanSlug.isEmpty()) {
+            throw new IllegalArgumentException("Le slug ne peut pas être vide après nettoyage");
+        }
+
+        // Vérifie que le slug n'est pas déjà pris par un autre profil
+        java.util.Optional<Profile> existing = profileRepositories.findBySlug(cleanSlug);
+        if (existing.isPresent() && !existing.get().getId().equals(profileId)) {
+            throw new IllegalArgumentException("Ce slug est déjà utilisé par un autre profil");
+        }
+
+        profile.setSlug(cleanSlug);
+        return profileRepositories.save(profile);
+    }
+
+    /**
+     * (Epic 6 - US-036) Récupère tous les messages de contact reçus pour un profil.
+     * Marque tous les messages non lus comme lus au passage.
+     *
+     * @param profile     Le profil dont on veut voir les messages
+     * @param currentUser L'utilisateur connecté (doit être le propriétaire)
+     * @return La liste des messages triés du plus récent au plus ancien
+     */
+    public List<ContactMessage> getContactMessages(Profile profile, User currentUser) throws UnauthorizedException {
+        if (!profile.getOwner().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedException("Non autorisé à voir ces messages");
+        }
+        List<ContactMessage> messages = contactMessageRepositories.findByProfileOrderBySentAtDesc(profile);
+        // Marque tous les messages non lus comme lus
+        messages.stream().filter(m -> !m.isRead()).forEach(m -> {
+            m.setRead(true);
+            contactMessageRepositories.save(m);
+        });
+        return messages;
+    }
+
+    /**
+     * (Epic 6 - US-036) Compte les messages non lus pour un profil.
+     * Utilisé pour afficher un badge dans l'interface.
+     */
+    public long countUnreadMessages(Profile profile) {
+        return contactMessageRepositories.countByProfileAndReadFalse(profile);
     }
 }

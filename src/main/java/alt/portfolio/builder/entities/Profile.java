@@ -124,6 +124,24 @@ public class Profile {
     private String portfolioColor = "#667eea";
 
     /**
+     * (Epic 6 - US-037) Slug personnalisé pour les URLs publiques.
+     *
+     * Le slug est un identifiant lisible choisi par l'utilisateur (ex: "mon-cv-dev").
+     * Quand défini, les URLs publiques utilisent le slug au lieu du username :
+     *   /public/cv/mon-cv-dev  au lieu de  /public/cv/jdupont
+     *
+     * Peut être null (non défini) : dans ce cas, on utilise le username comme avant.
+     * Doit être unique parmi tous les profils.
+     *
+     * Choix d'implémentation : champ nullable unique sur Profile.
+     * -- Alternative non retenue : modifier le Username de l'User (impact sur la connexion).
+     * -- Alternative non retenue : slug au niveau User global (un slug par user, pas par profil).
+     * -- Choix retenu : slug par profil, unique, null si non défini → rétrocompatible.
+     */
+    @Column(length = 100, unique = true, nullable = true)
+    private String slug;
+
+    /**
      * (Epic 5 - US-024) Le template (mise en page) choisi pour la vue CV.
      * Ex : "Classique", "Moderne", "Minimal", "Créatif".
      * Peut être null si aucun template n'a encore été choisi.

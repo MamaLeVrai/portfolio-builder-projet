@@ -1,0 +1,58 @@
+{{ > /partials/header}}
+
+<!-- (Epic 6 - US-036) Page de consultation des messages de contact reçus sur le portfolio -->
+
+<div class="container">
+    <div class="card" style="max-width: 900px; margin: 30px auto;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 class="card-title" style="margin:0;">Messages reçus — {{profile.name}}</h2>
+            <a href="/profiles/my-profiles" class="btn btn-secondary" style="text-decoration:none;">Retour</a>
+        </div>
+        <div class="card-body">
+
+            {{#successMessage}}
+            <div class="alert alert-success">{{successMessage}}</div>
+            {{/successMessage}}
+
+            {{#hasMessages}}
+            <p style="color:#666; margin-bottom:20px;">Ces messages ont été envoyés via le formulaire de contact de votre portfolio public.</p>
+
+            {{#messages}}
+            <div style="border:1px solid #e0e0e0; border-radius:8px; padding:20px; margin-bottom:15px; background:white;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                    <div>
+                        <strong style="font-size:16px; color:#333;">{{senderName}}</strong>
+                        <a href="mailto:{{senderEmail}}" style="margin-left:10px; color:#667eea; font-size:14px;">{{senderEmail}}</a>
+                    </div>
+                    <span style="color:#999; font-size:13px;">{{sentAt}}</span>
+                </div>
+                <p style="color:#444; line-height:1.6; margin:0; white-space:pre-wrap;">{{message}}</p>
+                <div style="margin-top:10px;">
+                    <a href="mailto:{{senderEmail}}?subject=Re: votre message"
+                       class="btn btn-secondary"
+                       style="padding:5px 12px; font-size:13px; text-decoration:none;">
+                        Répondre par email
+                    </a>
+                </div>
+            </div>
+            {{/messages}}
+
+            {{/hasMessages}}
+
+            {{^hasMessages}}
+            <div style="text-align:center; padding:60px 20px; color:#aaa;">
+                <div style="font-size:48px; margin-bottom:15px;">📭</div>
+                <p style="font-size:18px; margin:0;">Aucun message reçu pour l'instant.</p>
+                <p style="margin-top:10px; font-size:14px;">
+                    Le formulaire de contact apparaît sur votre
+                    <a href="/public/portfolio/{{profile.owner.username}}" style="color:#667eea;">portfolio public</a>
+                    quand il est publié.
+                </p>
+            </div>
+            {{/hasMessages}}
+
+        </div>
+    </div>
+</div>
+
+{{ > /partials/footer}}
