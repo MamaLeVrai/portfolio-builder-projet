@@ -24,20 +24,32 @@ public class SecurityConfig {
 	SecurityConfig(Portfolio1Application portfolio1Application) {
 	}
 
+	/**
+	 * Définit les règles de sécurité de l'application.
+	 *
+	 * C'est comme un videur à l'entrée d'une boîte de nuit :
+	 * - Certaines pages sont accessibles à tout le monde (liste blanche ci-dessous)
+	 * - Toutes les autres pages nécessitent d'être connecté
+	 *
+	 * Modifié dans Epic 4 (US-027) : ajout de "/public/**" dans la liste blanche
+	 * pour que les pages CV et Portfolio publiques soient visibles sans compte.
+	 */
 	@Bean
 	SecurityFilterChain configure(HttpSecurity http) throws Exception {
 		http.csrf(AbstractHttpConfigurer::disable)
 				.authorizeHttpRequests((req) -> req
-						.requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/"),
-								PathPatternRequestMatcher.withDefaults().matcher("/css/**"),
-								PathPatternRequestMatcher.withDefaults().matcher("/js/**"),
-								PathPatternRequestMatcher.withDefaults().matcher("/styles/**"),
-								PathPatternRequestMatcher.withDefaults().matcher("/register"),
+						.requestMatchers(
+								PathPatternRequestMatcher.withDefaults().matcher("/"),               // page d'accueil
+								PathPatternRequestMatcher.withDefaults().matcher("/css/**"),          // feuilles de style
+								PathPatternRequestMatcher.withDefaults().matcher("/js/**"),           // scripts JS
+								PathPatternRequestMatcher.withDefaults().matcher("/styles/**"),       // styles
+								PathPatternRequestMatcher.withDefaults().matcher("/register"),        // inscription
 								PathPatternRequestMatcher.withDefaults().matcher("/users/register/**"),
-								PathPatternRequestMatcher.withDefaults().matcher("/img/**"),
+								PathPatternRequestMatcher.withDefaults().matcher("/img/**"),          // images statiques
 								PathPatternRequestMatcher.withDefaults().matcher("/profiles/register/**"),
+								// (Epic 4 - US-027) Pages publiques CV et Portfolio — accessibles sans connexion
 								PathPatternRequestMatcher.withDefaults().matcher("/public/**"))
-						.permitAll().anyRequest().authenticated())
+						.permitAll().anyRequest().authenticated()) // tout le reste nécessite d'être connecté
 				.csrf(AbstractHttpConfigurer::disable)
 				.formLogin((form) -> form.loginPage("/login").defaultSuccessUrl("/profiles/my-profiles", true).permitAll())
 				.logout((logout) -> logout.logoutUrl("/logout").logoutSuccessUrl("/login").permitAll());

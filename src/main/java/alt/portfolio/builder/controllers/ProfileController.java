@@ -215,7 +215,13 @@ public class ProfileController {
 	}
 
 	/**
-	 * US-021 / US-026: Prévisualiser un profil (CV ou Portfolio)
+	 * (Epic 4 - US-021 / US-026) Prévisualise un profil AVANT de le publier.
+	 * URL : GET /profiles/{id}/preview?mode=cv  ou  ?mode=portfolio
+	 *
+	 * L'utilisateur peut basculer entre la vue CV et la vue Portfolio
+	 * grâce au paramètre "mode". Seul le propriétaire peut accéder à cette page.
+	 *
+	 * @param mode "cv" (par défaut) ou "portfolio"
 	 */
 	@GetMapping("/{id}/preview")
 	public String previewProfile(@PathVariable UUID id,
@@ -233,14 +239,21 @@ public class ProfileController {
 
 		model.addAttribute("profile", profile);
 		model.addAttribute("mode", mode);
-		model.addAttribute("isCvMode", "cv".equals(mode));
-		model.addAttribute("isPortfolioMode", "portfolio".equals(mode));
+		model.addAttribute("isCvMode", "cv".equals(mode));           // true si on est en mode CV
+		model.addAttribute("isPortfolioMode", "portfolio".equals(mode)); // true si Portfolio
 		model.addAttribute("owner", profile.getOwner());
 		return "/profiles/preview";
 	}
 
 	/**
-	 * US-022: Publier un profil en tant que CV et/ou Portfolio
+	 * (Epic 4 - US-022) Soumet le formulaire de publication.
+	 * URL : POST /profiles/{id}/publish
+	 *
+	 * Les cases à cocher "publishCv" et "publishPortfolio" viennent du formulaire HTML.
+	 * Si aucune case n'est cochée → dépublication totale.
+	 *
+	 * @param publishCv        true si la case "Publier en tant que CV" est cochée
+	 * @param publishPortfolio true si la case "Publier en tant que Portfolio" est cochée
 	 */
 	@PostMapping("/{id}/publish")
 	public String publishProfile(@PathVariable UUID id,
@@ -267,7 +280,15 @@ public class ProfileController {
 	}
 
 	/**
-	 * US-022 / US-027: Page de publication avec URLs publiques
+	 * (Epic 4 - US-022 / US-027) Affiche la page de publication.
+	 * URL : GET /profiles/{id}/publish
+	 *
+	 * Cette page affiche :
+	 * - Les cases à cocher pour activer le CV et/ou le Portfolio
+	 * - Les URLs publiques à partager (une fois publié)
+	 *
+	 * Les URLs publiques sont construites dynamiquement à partir de l'adresse du serveur
+	 * (ex: http://localhost:8080/public/cv/jean.dupont).
 	 */
 	@GetMapping("/{id}/publish")
 	public String showPublishPage(@PathVariable UUID id, ModelMap model, HttpServletRequest request) {
@@ -281,21 +302,29 @@ public class ProfileController {
 			return "redirect:/profiles/my-profiles";
 		}
 
+		// On construit les URLs complètes à partir de l'adresse du serveur actuel
 		String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 		String cvUrl = baseUrl + "/public/cv/" + currentUser.getUsername();
 		String portfolioUrl = baseUrl + "/public/portfolio/" + currentUser.getUsername();
 
 		model.addAttribute("profile", profile);
-		model.addAttribute("cvUrl", cvUrl);
-		model.addAttribute("portfolioUrl", portfolioUrl);
-		model.addAttribute("isPublishedAsCv", profile.isPublishedAsCv());
-		model.addAttribute("isPublishedAsPortfolio", profile.isPublishedAsPortfolio());
-		model.addAttribute("isPublished", profile.isPublishedAsCv() || profile.isPublishedAsPortfolio());
+		model.addAttribute("cvUrl", cvUrl);                                               // URL à copier pour le CV
+		model.addAttribute("portfolioUrl", portfolioUrl);                                 // URL à copier pour le Portfolio
+		model.addAttribute("isPublishedAsCv", profile.isPublishedAsCv());                 // pour pré-cocher la case CV
+		model.addAttribute("isPublishedAsPortfolio", profile.isPublishedAsPortfolio());   // pour pré-cocher la case Portfolio
+		model.addAttribute("isPublished", profile.isPublishedAsCv() || profile.isPublishedAsPortfolio()); // au moins une vue publiée ?
 		return "/profiles/publish";
 	}
 
 	/**
-	 * US-023: Statistiques de vues d'un profil
+	 * (Epic 4 - US-023) Affiche les statistiques de vues d'un profil.
+	 * URL : GET /profiles/{id}/stats
+	 *
+	 * Récupère et envoie au template HTML :
+	 * - Le total des vues
+	 * - Les vues CV séparément
+	 * - Les vues Portfolio séparément
+	 * - L'historique des visites récentes
 	 */
 	@GetMapping("/{id}/stats")
 	public String profileStats(@PathVariable UUID id, ModelMap model) {
@@ -319,7 +348,7 @@ public class ProfileController {
 		model.addAttribute("cvViews", cvViews);
 		model.addAttribute("portfolioViews", portfolioViews);
 		model.addAttribute("recentViews", recentViews);
-		model.addAttribute("hasViews", totalViews > 0);
+		model.addAttribute("hasViews", totalViews > 0); // false si jamais vu → affiche un message spécial
 		return "/profiles/stats";
 	}
 }

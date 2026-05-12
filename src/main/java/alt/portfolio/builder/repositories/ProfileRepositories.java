@@ -10,31 +10,47 @@ import org.springframework.stereotype.Repository;
 import alt.portfolio.builder.entities.Profile;
 import alt.portfolio.builder.entities.User;
 
+/**
+ * ProfileRepositories — Le "tiroir" pour les profils.
+ *
+ * C'est l'intermédiaire entre notre code Java et la table "profile"
+ * en base de données. On lui demande des profils, il fait le SQL tout seul.
+ * Les noms des méthodes suivent une convention magique de Spring :
+ * "findBy" + nom du champ + condition → Spring génère la requête SQL.
+ *
+ * Modifié dans Epic 4 (US-021 à US-027) : ajout des méthodes pour
+ * récupérer les profils publiés en CV ou en Portfolio.
+ */
 @Repository
 public interface ProfileRepositories extends JpaRepository<Profile, UUID> {
 
-	// public Optional<Profile> findByUserId(UUID userId);
+    /** Cherche un profil par son nom exact (utilisé pour éviter les doublons) */
+    Optional<Profile> findByName(String name);
 
-	Optional<Profile> findByName(String name);
+    /** Récupère tous les profils qui ne sont pas archivés (= "supprimés") */
+    List<Profile> findByArchivedFalse();
 
-	// retourne tous les profils non archivés
-	List<Profile> findByArchivedFalse();
+    /** Récupère les profils non archivés d'un utilisateur précis, identifié par son ID */
+    List<Profile> findByOwnerIdAndArchivedFalse(UUID ownerId);
 
-	// retourne les profils non archivés d'un utilisateur donné
-	List<Profile> findByOwnerIdAndArchivedFalse(UUID ownerId);
+    /** Récupère les profils d'un utilisateur triés du plus récemment modifié au plus ancien (US-007) */
+    List<Profile> findByOwnerOrderByUpdatedAtDesc(User owner);
 
-	// retourne les profils d'un utilisateur triés par date de mise à jour (US-007)
-	List<Profile> findByOwnerOrderByUpdatedAtDesc(User owner);
+    /** Même chose mais en excluant les profils archivés — utilisé dans "Mes profils" */
+    List<Profile> findByOwnerAndArchivedFalseOrderByUpdatedAtDesc(User owner);
 
-	// retourne les profils non archivés d'un utilisateur triés par date de mise à jour
-	List<Profile> findByOwnerAndArchivedFalseOrderByUpdatedAtDesc(User owner);
+    /** Trouve le profil marqué comme "par défaut" pour un utilisateur (il ne peut y en avoir qu'un) */
+    Optional<Profile> findByOwnerAndIsDefaultTrue(User owner);
 
-	// trouver le profil par défaut d'un utilisateur
-	Optional<Profile> findByOwnerAndIsDefaultTrue(User owner);
+    /**
+     * (Epic 4 - US-027) Trouve le profil par défaut d'un utilisateur qui est publié en CV.
+     * Utilisé pour afficher la page publique /public/cv/{username}.
+     */
+    Optional<Profile> findByOwnerAndIsDefaultTrueAndPublishedAsCvTrue(User owner);
 
-	// trouver le profil par défaut publié en CV d'un utilisateur
-	Optional<Profile> findByOwnerAndIsDefaultTrueAndPublishedAsCvTrue(User owner);
-
-	// trouver le profil par défaut publié en portfolio d'un utilisateur
-	Optional<Profile> findByOwnerAndIsDefaultTrueAndPublishedAsPortfolioTrue(User owner);
+    /**
+     * (Epic 4 - US-027) Trouve le profil par défaut d'un utilisateur qui est publié en Portfolio.
+     * Utilisé pour afficher la page publique /public/portfolio/{username}.
+     */
+    Optional<Profile> findByOwnerAndIsDefaultTrueAndPublishedAsPortfolioTrue(User owner);
 }

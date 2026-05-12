@@ -19,73 +19,148 @@ import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Profile — La fiche de présentation d'un utilisateur.
+ *
+ * Pense à ça comme à une feuille de papier sur laquelle tu écris
+ * tout sur toi : ton nom, ta description, tes expériences…
+ * Un utilisateur peut avoir PLUSIEURS profils (un pour chercher un emploi,
+ * un autre pour montrer ses projets, etc.).
+ *
+ * Modifié dans Epic 4 (publication) et Epic 5 (personnalisation visuelle).
+ */
 @Entity
 @Getter
 @Setter
 public class Profile {
 
-	@Id
-	private UUID id = UUID.randomUUID();
+    /** Identifiant unique du profil, généré automatiquement */
+    @Id
+    private UUID id = UUID.randomUUID();
 
-	private boolean archived = false;
+    /**
+     * Indique si le profil est "archivé" (= caché, pas vraiment supprimé).
+     * Quand tu "supprimes" un profil, on le cache juste au lieu de l'effacer
+     * pour ne pas perdre les données.
+     */
+    private boolean archived = false;
 
-	@Column(length = 150, nullable = false)
-	private String name;
+    /** Le titre du profil (ex: "Mon CV développeur", "Portfolio créatif") */
+    @Column(length = 150, nullable = false)
+    private String name;
 
-	@Column(length = 500, nullable = false)
-	private String description = "";
+    /** Un texte de présentation qui apparaît sur le CV et le Portfolio */
+    @Column(length = 500, nullable = false)
+    private String description = "";
 
-	@Column(length = 255, nullable = true)
-	private String imageUrl;
+    /** L'adresse web (URL) de la photo de profil (ex: "/uploads/profiles/ma-photo.jpg") */
+    @Column(length = 255, nullable = true)
+    private String imageUrl;
 
-	@Column(nullable = true, updatable = false)
-	@CreationTimestamp
-	private LocalDateTime createdAt;
+    /**
+     * Date de création du profil.
+     * "updatable = false" signifie qu'on ne peut pas modifier cette date après création.
+     * Remplie automatiquement par Hibernate.
+     */
+    @Column(nullable = true, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-	@Column(nullable = true)
-	@UpdateTimestamp
-	private LocalDateTime updatedAt;
+    /** Date de la dernière modification. Mise à jour automatiquement par Hibernate. */
+    @Column(nullable = true)
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
-	@Column(length = 20, nullable = false)
-	private String status = "draft"; // draft, published, archived
+    /**
+     * État du profil :
+     * - "draft"     = brouillon (en cours de construction, pas encore visible)
+     * - "published" = publié (visible par tout le monde)
+     * - "archived"  = archivé (plus visible)
+     */
+    @Column(length = 20, nullable = false)
+    private String status = "draft";
 
-	@Column(nullable = false)
-	private boolean isDefault = false;
+    /**
+     * Est-ce que c'est le profil "principal" de l'utilisateur ?
+     * Le profil par défaut est celui qui s'affiche en priorité sur les URLs publiques.
+     */
+    @Column(nullable = false)
+    private boolean isDefault = false;
 
-	@Column(nullable = false)
-	private boolean publishedAsCv = false;
+    /**
+     * (Epic 4 - US-022) Est-ce que ce profil est publié en tant que CV ?
+     * Si true, il est accessible à l'URL /public/cv/{username}.
+     */
+    @Column(nullable = false)
+    private boolean publishedAsCv = false;
 
-	@Column(nullable = false)
-	private boolean publishedAsPortfolio = false;
+    /**
+     * (Epic 4 - US-022) Est-ce que ce profil est publié en tant que Portfolio ?
+     * Si true, il est accessible à l'URL /public/portfolio/{username}.
+     */
+    @Column(nullable = false)
+    private boolean publishedAsPortfolio = false;
 
-	@Column(nullable = false)
-	private long viewCount = 0;
+    /**
+     * (Epic 4 - US-023) Nombre total de fois que ce profil a été vu.
+     * Incrémenté à chaque visite d'un visiteur sur les pages publiques.
+     */
+    @Column(nullable = false)
+    private long viewCount = 0;
 
-	// couleur principale pour la vue CV (hex, ex: #2c3e50)
-	@Column(length = 7, nullable = false)
-	private String cvColor = "#2c3e50";
+    /**
+     * (Epic 5 - US-025/028) La couleur principale choisie pour la vue CV.
+     * Stockée en format hexadécimal (ex: "#2c3e50" = un bleu très foncé).
+     * Valeur par défaut : bleu marine.
+     */
+    @Column(length = 7, nullable = false)
+    private String cvColor = "#2c3e50";
 
-	// couleur principale pour la vue Portfolio
-	@Column(length = 7, nullable = false)
-	private String portfolioColor = "#667eea";
+    /**
+     * (Epic 5 - US-025/028) La couleur principale choisie pour la vue Portfolio.
+     * Valeur par défaut : violet-bleu.
+     */
+    @Column(length = 7, nullable = false)
+    private String portfolioColor = "#667eea";
 
-	// template = vue CV, template1 = vue Portfolio
-	@ManyToOne(optional = true)
-	private Template template;
+    /**
+     * (Epic 5 - US-024) Le template (mise en page) choisi pour la vue CV.
+     * Ex : "Classique", "Moderne", "Minimal", "Créatif".
+     * Peut être null si aucun template n'a encore été choisi.
+     */
+    @ManyToOne(optional = true)
+    private Template template;
 
-	@ManyToOne(optional = true)
-	private Template template1;
+    /**
+     * (Epic 5 - US-024) Le template choisi pour la vue Portfolio.
+     * Même chose que "template" mais pour le Portfolio.
+     */
+    @ManyToOne(optional = true)
+    private Template template1;
 
-	// #idOwner : propriétaire du profil
-	@ManyToOne(optional = false)
-	private User owner;
+    /**
+     * Le propriétaire de ce profil (l'utilisateur qui l'a créé).
+     * Un profil appartient toujours à un seul utilisateur.
+     */
+    @ManyToOne(optional = false)
+    private User owner;
 
-	// profile_Image (#Id_Profile, #id)
-	@ManyToMany
-	@JoinTable(name = "profile_image", joinColumns = @JoinColumn(name = "profile_id"), inverseJoinColumns = @JoinColumn(name = "image_id"))
-	private List<Image> images;
+    /**
+     * Les images associées à ce profil (table de liaison profile_image en base).
+     * Relation plusieurs-à-plusieurs : un profil peut avoir plusieurs images,
+     * et une image peut appartenir à plusieurs profils.
+     */
+    @ManyToMany
+    @JoinTable(name = "profile_image",
+        joinColumns = @JoinColumn(name = "profile_id"),
+        inverseJoinColumns = @JoinColumn(name = "image_id"))
+    private List<Image> images;
 
-	// relation inverse avec Rubric
-	@OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Rubric> rubrics;
+    /**
+     * Les rubriques de ce profil (Expériences, Formations, Compétences…).
+     * CascadeType.ALL = si on supprime le profil, toutes ses rubriques sont supprimées aussi.
+     * orphanRemoval = si on retire une rubrique de la liste, elle est effacée de la base.
+     */
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rubric> rubrics;
 }
