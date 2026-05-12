@@ -321,8 +321,17 @@ public class ProfileController {
 	 * (Epic 6 - US-037) Enregistre le slug personnalisé d'un profil.
 	 * URL : POST /profiles/{id}/slug
 	 *
-	 * Le slug est nettoyé automatiquement par ProfileService.updateSlug() :
-	 * espaces → tirets, majuscules → minuscules, caractères spéciaux supprimés.
+	 * Le slug est le "surnom" dans l'URL publique du profil.
+	 * Exemple : si l'utilisateur saisit "mon-cv-dev", son CV sera accessible à
+	 * /public/cv/mon-cv-dev au lieu de /public/cv/jdupont.
+	 *
+	 * Le nettoyage du slug (minuscules, tirets, pas de caractères spéciaux)
+	 * est fait automatiquement par ProfileService.updateSlug().
+	 * Si le slug est vide, il est désactivé (on revient au username par défaut).
+	 *
+	 * Ce formulaire est séparé du formulaire principal d'édition car le slug
+	 * a sa propre validation (vérification d'unicité, nettoyage spécifique).
+	 * Si on les fusionnait, une erreur de slug annulerait aussi les autres modifications.
 	 */
 	@PostMapping("/{id}/slug")
 	public String updateSlug(@PathVariable UUID id,
@@ -335,17 +344,24 @@ public class ProfileController {
 			profileService.updateSlug(id, slug, currentUser);
 			redirectAttributes.addFlashAttribute("successMessage", "Slug mis à jour avec succès !");
 		} catch (IllegalArgumentException e) {
+			// Le slug est déjà pris par un autre profil ou invalide après nettoyage
 			redirectAttributes.addFlashAttribute("error", e.getMessage());
 		}
+		// On revient sur la page d'édition pour que l'utilisateur voie le résultat
 		return "redirect:/profiles/" + id + "/edit";
 	}
 
 	/**
-	 * (Epic 6 - US-036) Affiche les messages de contact reçus sur un profil portfolio.
+	 * (Epic 6 - US-036) Affiche la boîte de réception des messages de contact.
 	 * URL : GET /profiles/{id}/messages
 	 *
-	 * Seul le propriétaire du profil peut voir ses messages.
-	 * Les messages sont marqués comme lus lors de la consultation.
+	 * Quand des visiteurs envoient un message via le formulaire de contact d'un portfolio,
+	 * les messages sont stockés en base de données. Cette page permet au propriétaire
+	 * du profil de les consulter.
+	 *
+	 * Seul le propriétaire peut accéder à cette page (vérifié dans ProfileService).
+	 * Quand le propriétaire ouvre cette page, tous les messages non lus passent en "lus".
+	 * C'est comme ouvrir ses emails : une fois affichés, ils ne sont plus "nouveaux".
 	 */
 	@GetMapping("/{id}/messages")
 	public String viewMessages(@PathVariable UUID id, ModelMap model) throws UnauthorizedException {
@@ -353,10 +369,13 @@ public class ProfileController {
 		if (currentUser == null) return "redirect:/login";
 
 		Profile profile = profileService.getProfileById(id);
+		// getContactMessages vérifie que c'est bien le propriétaire ET marque les messages comme lus
 		List<ContactMessage> messages = profileService.getContactMessages(profile, currentUser);
 
 		model.addAttribute("profile", profile);
 		model.addAttribute("messages", messages);
+		// hasMessages = true si la liste n'est pas vide → le template affiche soit les messages,
+		// soit un message "Aucun message" (grâce aux blocs {{#hasMessages}} et {{^hasMessages}})
 		model.addAttribute("hasMessages", !messages.isEmpty());
 		return "/profiles/messages";
 	}
